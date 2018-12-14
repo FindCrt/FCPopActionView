@@ -85,4 +85,8 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 
 @interface FCPopDisplayer_center : FCPopDisplayer
 
+/** 这两个参数同CASpringAnimation, 修改这些数据调节弹出动画效果 */
+@property (nonatomic) CGFloat stiffness;
+@property (nonatomic) CGFloat damping;
+
 @end

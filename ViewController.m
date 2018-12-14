@@ -23,7 +23,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    _orangeView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 200, 600)];
+    _orangeView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 120, 80)];
     _orangeView.backgroundColor = [UIColor orangeColor];
     _orangeView.font = [UIFont systemFontOfSize:30];
     _orangeView.text = @"HELLO";
@@ -31,7 +31,7 @@
     _orangeView.textColor = [UIColor whiteColor];
     _orangeView.userInteractionEnabled = YES;
     
-    UIButton *action = [[UIButton alloc] initWithFrame:CGRectMake(50, 200, 100, 100)];
+    UIButton *action = [[UIButton alloc] initWithFrame:CGRectMake(40, 00, 40, 30)];
     action.backgroundColor = [UIColor whiteColor];
     [action setTitle:@"action" forState:(UIControlStateNormal)];
     [action setTitleColor:[UIColor purpleColor] forState:(UIControlStateNormal)];
@@ -50,18 +50,17 @@
 }
 
 - (IBAction)showPopView:(id)sender {
-    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypePoint) position:(FCPopDisplayPositionAuto)];
+    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypeCenter) position:(FCPopDisplayPositionAuto)];
     _displayer.delegate = self;
-    _displayer.duration = 1.5;
     
     _displayer.popView = _orangeView;
-    _displayer.bgView.backgroundColor = [UIColor clearColor];
+//    _displayer.bgView.backgroundColor = [UIColor clearColor];
     
-    FCPopDisplayer_point *dispPoint = (FCPopDisplayer_point *)_displayer;
-    dispPoint.triggerView = sender;
-    dispPoint.showArrow = YES;
-    dispPoint.overlap = NO;
-    dispPoint.animationType = FCPopDisplayerAnimTypeScale;
+//    FCPopDisplayer_point *dispPoint = (FCPopDisplayer_point *)_displayer;
+//    dispPoint.triggerView = sender;
+//    dispPoint.showArrow = YES;
+//    dispPoint.overlap = NO;
+//    dispPoint.animationType = FCPopDisplayerAnimTypeFade;
     
     [_displayer show];
 }

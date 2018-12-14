@@ -274,11 +274,6 @@
     self.popView.frame = _popViewFrame;
 }
 
--(void)resetAnchorPoint{
-    self.popView.layer.anchorPoint = _preAnchor;
-    self.popView.frame = _popViewFrame;
-}
-
 -(void)show{
     
     if (!self.popView) {
@@ -304,9 +299,7 @@
         //TODO: spring animation
         
         CGAffineTransform preTransform = popView.transform;
-        NSLog(@"1: frame: %@, trans: %@, anchor: %@",NSStringFromCGRect(popView.frame), NSStringFromCGAffineTransform(popView.transform),NSStringFromCGPoint(popView.layer.anchorPoint));
         [self changeAnchorPoint];
-        NSLog(@"2: frame: %@, trans: %@, anchor: %@",NSStringFromCGRect(popView.frame), NSStringFromCGAffineTransform(popView.transform),NSStringFromCGPoint(popView.layer.anchorPoint));
         
         popView.transform = CGAffineTransformScale(popView.transform, 0.3, 0.3);
         
@@ -316,7 +309,18 @@
             self.bgView.alpha = kBGViewAlpha;
             
         } completion:^(BOOL finished) {
-//            [self resetAnchorPoint];
+            [self showCompleted];
+        }];
+        
+    }else if (_animationType == FCPopDisplayerAnimTypeFade){
+        
+        popView.alpha = 0;
+        [UIView animateWithDuration:self.duration animations:^{
+            
+            popView.alpha = 1;
+            self.bgView.alpha = kBGViewAlpha;
+            
+        } completion:^(BOOL finished) {
             [self showCompleted];
         }];
     }
@@ -335,7 +339,6 @@
             
         } completion:^(BOOL finished) {
             popView.transform = preTransform;
-//            [self resetAnchorPoint];
             
             [self.bgView removeFromSuperview];
             [self.popView removeFromSuperview];
@@ -345,6 +348,25 @@
             [self hideCompleted];
 
         }];
+        
+    }else if (_animationType == FCPopDisplayerAnimTypeFade){
+        
+        [UIView animateWithDuration:self.duration animations:^{
+            
+            popView.alpha = 0;
+            self.bgView.alpha = kBGViewAlpha;
+            
+        } completion:^(BOOL finished) {
+            
+            popView.alpha = 1;
+            [self.bgView removeFromSuperview];
+            [self.popView removeFromSuperview];
+            if (self.showArrow) {
+                [self.popView removeFCBorder];
+            }
+            [self hideCompleted];
+            
+        }];
     }
 }
 
@@ -352,7 +374,98 @@
 
 #pragma mark - 显示在屏幕中央
 
+static NSString *FCPopCenterShowAnimKey = @"FCPopCenterShowAnimKey";
+static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
+
+@interface FCPopDisplayer_center ()<CAAnimationDelegate>{
+    CATransform3D _preTransform;
+    BOOL _showing;
+}
+
+@property (nonatomic) CASpringAnimation *showAnim;
+@property (nonatomic) CABasicAnimation *hideAnim;
+@end
+
 @implementation FCPopDisplayer_center
+
+-(CASpringAnimation *)showAnim{
+    if (!_showAnim) {
+        _showAnim = [[CASpringAnimation alloc] init];
+        _showAnim.duration = self.duration*2;
+        _showAnim.keyPath = @"transform";
+        _showAnim.fromValue = [NSValue valueWithCATransform3D:CATransform3DScale(_preTransform, 0.3, 0.3, 1)];
+        _showAnim.toValue = [NSValue valueWithCATransform3D:_preTransform];
+        _showAnim.delegate = self;
+        
+        _showAnim.stiffness = 200;
+        _showAnim.damping = 15;
+    }
+    
+    return _showAnim;
+}
+
+-(CABasicAnimation *)hideAnim{
+    if (!_hideAnim) {
+        _hideAnim = [[CABasicAnimation alloc] init];
+        _hideAnim.duration = self.duration;
+        _hideAnim.keyPath = @"transform";
+        _hideAnim.fromValue = [NSValue valueWithCATransform3D:_preTransform];
+        _hideAnim.toValue = [NSValue valueWithCATransform3D:CATransform3DScale(_preTransform, 0.3, 0.3, 1)];
+        _hideAnim.delegate = self;
+        _hideAnim.removedOnCompletion = NO;
+        _hideAnim.fillMode = kCAFillModeForwards;
+    }
+    
+    return _hideAnim;
+}
+
+-(void)show{
+    if (!self.popView) {
+        return;
+    }
+    _showing = YES;
+    UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
+    
+    [keyWindow addSubview:self.bgView];
+    self.bgView.alpha = 0;
+    
+    UIView *popView = self.popView;
+    [keyWindow addSubview:popView];
+    
+    popView.center = CGPointMake(kScreenWidth/2.0, kScreenHeight/2.0);
+    _preTransform = popView.layer.transform;
+    
+    //正向执行
+    [popView.layer addAnimation:self.showAnim forKey:FCPopCenterShowAnimKey];
+    
+    [UIView animateWithDuration:self.duration animations:^{
+        self.bgView.alpha = kBGViewAlpha;
+    }];
+}
+
+-(void)hide{
+    _showing = NO;
+    
+    [self.popView.layer addAnimation:self.hideAnim forKey:FCPopCenterHideAnimKey];
+    
+    [UIView animateWithDuration:self.duration animations:^{
+        self.bgView.alpha = 0;
+    }];
+}
+
+-(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
+    if (_showing) {
+        self.popView.layer.transform = _preTransform;
+        [self showCompleted];
+    }else{
+        [self.popView.layer removeAnimationForKey:FCPopCenterHideAnimKey];
+        [self.bgView removeFromSuperview];
+        [self.popView removeFromSuperview];
+        self.popView.layer.transform = _preTransform;
+        
+        [self hideCompleted];
+    }
+}
 
 @end
 
