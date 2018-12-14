@@ -43,16 +43,46 @@ typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
 /** 显示的动画时间，默认0.25s */
 @property (nonatomic) float duration;
 
-/** 触发弹框的view，对于point类型有用 */
-@property (nonatomic) UIView *triggerView;
-
 /** 弹框下的背景视图 */
 @property (nonatomic, readonly) UIView *bgView;
+
+/** 触发弹框的view */
+@property (nonatomic) UIView *triggerView;
 
 -(void)show;
 -(void)hide;
 
 @property (nonatomic) UIView *popView;
 @property (nonatomic) id<FCPopDisplayDelegate> delegate;
+
+@end
+
+
+#pragma mark - 默认子类
+
+@interface FCPopDisplayer_screenEdge : FCPopDisplayer
+
+@end
+
+typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
+    FCPopDisplayerAnimTypeScale,
+    FCPopDisplayerAnimTypeFade,
+};
+
+@interface FCPopDisplayer_point : FCPopDisplayer
+
+/** 是否显示箭头 */
+@property (nonatomic) BOOL showArrow;
+/** 箭头的大小,默认为(10, 10); 注意会受到弹框view的scale因素影响 */
+@property (nonatomic) CGSize arrowSize;
+
+/** 弹框是否重叠triggerView */
+@property (nonatomic) BOOL overlap;
+/** 动画形式 */
+@property (nonatomic) FCPopDisplayerAnimType animationType;
+
+@end
+
+@interface FCPopDisplayer_center : FCPopDisplayer
 
 @end
