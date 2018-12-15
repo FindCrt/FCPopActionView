@@ -156,16 +156,42 @@
 }
 
 //被屏幕遮挡后的可见程度
--(float)visibleRateForFrame:(CGRect)frame{
+-(float)visibleRateForFrame:(CGRect)frame margins:(UIEdgeInsets)margins{
     CGFloat size = frame.size.width*frame.size.height;
     
-    CGFloat overlapW = MAX(0, MIN(kScreenWidth, CGRectGetMaxX(frame))-MAX(0, frame.origin.x));
-    CGFloat overlapH = MAX(0, MIN(kScreenHeight, CGRectGetMaxY(frame))-MAX(0, frame.origin.y));
+    CGFloat overlapW = MAX(0, MIN(kScreenWidth-margins.right, CGRectGetMaxX(frame))-MAX(margins.left, frame.origin.x));
+    CGFloat overlapH = MAX(0, MIN(kScreenHeight-margins.bottom, CGRectGetMaxY(frame))-MAX(margins.top, frame.origin.y));
     
     return overlapH*overlapW/size;
 }
 
--(CGRect)calculateDispFrameWithPosition:(FCPopDisplayPosition)position arrowPoint:(CGPoint *)pointP{
+-(CGRect)squeezeFrame:(CGRect)frame{
+    CGRect sqFrame;
+    sqFrame.origin.x = MAX(_margins.left, frame.origin.x);
+    sqFrame.size.width = MIN(kScreenWidth-_margins.right, CGRectGetMaxX(frame)) -sqFrame.origin.x;
+    sqFrame.origin.y = MAX(_margins.top, frame.origin.y);
+    sqFrame.size.height = MIN(kScreenHeight-_margins.bottom, CGRectGetMaxY(frame)) - sqFrame.origin.y;
+    
+    return sqFrame;
+}
+
+-(CGPoint)arrowPointForFrame:(CGRect)frame point:(CGPoint)point position:(FCPopDisplayPosition)position{
+    if (position == FCPopDisplayPositionBottom) {
+        return CGPointMake(point.x-frame.origin.x, 0);
+    }else if (position == FCPopDisplayPositionTop){
+        return CGPointMake(point.x-frame.origin.x, frame.size.height);
+    }else if (position == FCPopDisplayPositionLeft){
+        return CGPointMake(frame.size.width, point.y-frame.origin.y);
+    }else if (position == FCPopDisplayPositionRight){
+        return CGPointMake(0, point.y-frame.origin.y);
+    }
+    
+    return CGPointMake(0, 0);
+}
+
+-(CGRect)calculateDispFrameWithPosition:(FCPopDisplayPosition)position effectivePosition:(FCPopDisplayPosition *)effPosition{
+    
+    *effPosition = position;
     
     CGRect frame = self.popView.frame;
     //转到window坐标系, self.triggerView为空，则定位到坐标原点
@@ -180,8 +206,6 @@
         
         frame.origin.y = self.overlap?CGRectGetMinY(triggerFrame):CGRectGetMaxY(triggerFrame);
         
-        *pointP = CGPointMake(CGRectGetMidX(triggerFrame)-frame.origin.x, 0);
-        
     }else if (position == FCPopDisplayPositionTop){
         
         //先让弹框和触发view竖直中心线重合，如果超出屏幕，在左右移动调整
@@ -192,16 +216,12 @@
         
         frame.origin.y = (self.overlap?CGRectGetMaxY(triggerFrame):CGRectGetMinY(triggerFrame))-frame.size.height;
         
-        *pointP = CGPointMake(CGRectGetMidX(triggerFrame)-frame.origin.x, frame.size.height);
-        
     }else if (position == FCPopDisplayPositionLeft){
         frame.origin.x = (self.overlap?CGRectGetMaxX(triggerFrame):CGRectGetMinX(triggerFrame))-frame.size.width;
         
         frame.origin.y = CGRectGetMidY(triggerFrame)-frame.size.height/2.0;
         frame.origin.y = MAX(0, frame.origin.y);
         frame.origin.y = MIN(kScreenHeight-frame.size.height, frame.origin.y);
-        
-        *pointP = CGPointMake(frame.size.width, CGRectGetMidY(triggerFrame)-frame.origin.y);
         
     }else if (position == FCPopDisplayPositionRight){
         frame.origin.x = self.overlap?CGRectGetMinX(triggerFrame):CGRectGetMaxX(triggerFrame);
@@ -210,25 +230,25 @@
         frame.origin.y = MAX(0, frame.origin.y);
         frame.origin.y = MIN(kScreenHeight-frame.size.height, frame.origin.y);
         
-        *pointP = CGPointMake(0, CGRectGetMidY(triggerFrame)-frame.origin.y);
-        
     }else if (position == FCPopDisplayPositionAuto){
         
         //最大可见度
         float maxRate = 0;
         CGRect maxRateFrame = frame;
-        CGPoint point;
+        FCPopDisplayPosition position;
         
         NSArray*positions = @[@(FCPopDisplayPositionBottom), @(FCPopDisplayPositionTop), @(FCPopDisplayPositionLeft), @(FCPopDisplayPositionRight)];
         
         for (NSNumber *num in positions) {
-            CGRect targetFrame = [self calculateDispFrameWithPosition:[num integerValue] arrowPoint:&point];
-            float rate = [self visibleRateForFrame:targetFrame];
+            CGRect targetFrame = [self calculateDispFrameWithPosition:[num integerValue] effectivePosition:&position];
+            UIEdgeInsets margins = _squeezeByScreen?_margins:UIEdgeInsetsZero;
+            float rate = [self visibleRateForFrame:targetFrame margins:margins];
             
+            //才去可见度最大的方案
             if (rate > maxRate) {
                 maxRate = rate;
                 maxRateFrame = targetFrame;
-                *pointP = point;
+                *effPosition = position;
             }
             
             if (rate == 1) {
@@ -266,11 +286,11 @@
     [view addArrowBorderAt:position offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:0];
 }
 
+//修改锚点是为了scale动画可以从某点逐渐放大，而不是默认的从中心放大
 -(void)changeAnchorPoint{
     _preAnchor = self.popView.layer.anchorPoint;
     self.popView.layer.anchorPoint = CGPointMake(_arrowPoint.x/_popViewFrame.size.width, _arrowPoint.y/_popViewFrame.size.height);
     
-    //修正anchorPoint修改后显示的偏移,原本锚点在中心，现在在arrowPoint
     self.popView.frame = _popViewFrame;
 }
 
@@ -287,7 +307,15 @@
     UIView *popView = self.popView;
     [keyWindow addSubview:popView];
     
-    _popViewFrame = [self calculateDispFrameWithPosition:self.position arrowPoint:&_arrowPoint];
+    CGPoint triggerCenter = [self.triggerView.superview convertPoint:self.triggerView.center toView:[UIApplication sharedApplication].keyWindow];
+    
+    FCPopDisplayPosition effPosition;
+    _popViewFrame = [self calculateDispFrameWithPosition:self.position effectivePosition:&effPosition];
+    if (_squeezeByScreen) {
+        _popViewFrame = [self squeezeFrame:_popViewFrame];
+    }
+    _arrowPoint = [self arrowPointForFrame:_popViewFrame point:triggerCenter position:effPosition];
+
     popView.frame = _popViewFrame;
     
     if (_showArrow && !_overlap) {

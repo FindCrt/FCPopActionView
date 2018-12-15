@@ -23,7 +23,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    _orangeView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 120, 80)];
+    _orangeView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 120, 800)];
     _orangeView.backgroundColor = [UIColor orangeColor];
     _orangeView.font = [UIFont systemFontOfSize:30];
     _orangeView.text = @"HELLO";
@@ -50,17 +50,19 @@
 }
 
 - (IBAction)showPopView:(id)sender {
-    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypeCenter) position:(FCPopDisplayPositionAuto)];
+    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypePoint) position:(FCPopDisplayPositionAuto)];
     _displayer.delegate = self;
     
     _displayer.popView = _orangeView;
-//    _displayer.bgView.backgroundColor = [UIColor clearColor];
+    _displayer.bgView.backgroundColor = [UIColor clearColor];
     
-//    FCPopDisplayer_point *dispPoint = (FCPopDisplayer_point *)_displayer;
-//    dispPoint.triggerView = sender;
-//    dispPoint.showArrow = YES;
-//    dispPoint.overlap = NO;
-//    dispPoint.animationType = FCPopDisplayerAnimTypeFade;
+    FCPopDisplayer_point *dispPoint = (FCPopDisplayer_point *)_displayer;
+    dispPoint.triggerView = sender;
+    dispPoint.showArrow = YES;
+    dispPoint.overlap = NO;
+    dispPoint.animationType = FCPopDisplayerAnimTypeScale;
+    dispPoint.squeezeByScreen = YES;
+    dispPoint.margins = UIEdgeInsetsMake(20, 30, 40, 50);
     
     [_displayer show];
 }

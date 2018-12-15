@@ -80,6 +80,10 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 @property (nonatomic) BOOL overlap;
 /** 动画形式 */
 @property (nonatomic) FCPopDisplayerAnimType animationType;
+/** 如果超出屏幕，则缩小size挤压在屏幕内 */
+@property (nonatomic) BOOL squeezeByScreen;
+/** 边距，squeezeByScreen为YES时才有意义 */
+@property (nonatomic) UIEdgeInsets margins;
 
 @end
 
