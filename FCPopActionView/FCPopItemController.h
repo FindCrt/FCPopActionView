@@ -10,4 +10,8 @@
 
 @interface FCPopItemController : NSObject
 
+@property (nonatomic) id item;
+
+@property (nonatomic, readonly) UIView *displayView;
+
 @end
