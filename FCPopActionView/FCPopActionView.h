@@ -31,4 +31,11 @@
 
 -(void)reloadData;
 
+
+@property (nonatomic) BOOL showSeparateLine;
+@property (nonatomic) UIEdgeInsets separateInsets;
+@property (nonatomic) UIColor *separateColor;
+
+@property (nonatomic) CGFloat cornerRadius;
+
 @end

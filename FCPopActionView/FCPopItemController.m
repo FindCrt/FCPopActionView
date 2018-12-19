@@ -10,11 +10,19 @@
 
 @implementation FCPopItemController
 
+-(instancetype)init{
+    return [self initWithItem:nil];
+}
+
 -(instancetype)initWithItem:(id)item{
     if (self = [super init]) {
         self.item = item;
     }
     return self;
+}
+
+-(void)layoutDisplayView{
+    [self.displayView layoutIfNeeded];
 }
 
 @end

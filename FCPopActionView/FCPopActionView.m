@@ -9,13 +9,38 @@
 #import "FCPopActionView.h"
 
 #define kFCPopContentWidth (self.frame.size.width)
+#define kFCPopLineWidth (1.0f/[UIScreen mainScreen].scale)
+
+//相关的数据做了一个包装
+@interface FCPopItemBox : NSObject
+
+@property (nonatomic) id item;
+@property (nonatomic) FCPopItemController *controller;
+@property (nonatomic) UIView *displayView;
+@property (nonatomic) UIView *separateLine;
+
+@end
+
+@implementation FCPopItemBox
+@end
+
+#pragma mark -
 
 @interface FCPopActionView (){
+    //滚动区域视图
     UIScrollView *_scrollZone;
-    NSMutableArray<UIView *> *_itemViews;
+    //所有的数据
+    NSMutableArray<FCPopItemBox *> *_itemBoxs;
 }
 
+//内容视图
 @property (nonatomic) UIView *contentView;
+//topView和contentView之间的分割线
+@property (nonatomic) UIView *topViewLine;
+//滚动区域底部分割线
+@property (nonatomic) UIView *scrollBottomLine;
+//contentView和bottomView之间的分割线
+@property (nonatomic) UIView *contentViewLine;
 
 @end
 
@@ -24,7 +49,10 @@
 -(instancetype)initWithFrame:(CGRect)frame{
     if (self = [super initWithFrame:frame]) {
         
-        _itemViews = [[NSMutableArray alloc] init];
+        _itemBoxs = [[NSMutableArray alloc] init];
+        
+        _separateColor = [UIColor colorWithWhite:0.9 alpha:1];
+        _showSeparateLine = YES;
         
         _scrollZone = [[UIScrollView alloc] init];
         _scrollZone.showsVerticalScrollIndicator = NO;
@@ -32,6 +60,8 @@
         
         _contentView = [[UIView alloc] init];
         [self addSubview:_contentView];
+        
+        self.backgroundColor = [UIColor whiteColor];
     }
     return self;
 }
@@ -41,6 +71,8 @@
     
     _topView = topView;
     [self addSubview:_topView];
+    
+    [_topView addSubview:self.topViewLine];
     
     [self setNeedsLayout];
 }
@@ -72,25 +104,33 @@
         return;
     }
     
-    [_itemViews removeAllObjects];
+    for (FCPopItemBox *box in _itemBoxs) {
+        [box.displayView removeFromSuperview];
+        [box.separateLine removeFromSuperview];
+    }
+    [_itemBoxs removeAllObjects];
     
     [_scrollZone.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [_contentView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [_contentView addSubview:_scrollZone];
     
     NSInteger scrollStart = _scrollRange.location;
-    NSInteger scrollEnd = MIN(_items.count-1, _scrollRange.location+_scrollRange.length-1);
+    NSInteger scrollEnd = MIN(_items.count, _scrollRange.location+_scrollRange.length)-1;
     
     for (int i = 0; i<_items.count; i++) {
         FCPopItemController *controller = [self.delegate popActionView:self itemControllerForItem:_items[i]];
-//        controller.item = _items[i];
+        FCPopItemBox *box = [[FCPopItemBox alloc] init];
+        box.item = _items[i];
+        box.controller = controller;
         
         BOOL inScrollRange = i>=scrollStart && i<=scrollEnd;
         UIView *parentView = inScrollRange?_scrollZone:_contentView;
         UIView *itemView = controller.displayView;
         
+        box.displayView = itemView;
         [parentView addSubview:itemView];
-        [_itemViews addObject:itemView];
+        
+        [_itemBoxs addObject:box];
     }
     
     [self setNeedsLayout];
@@ -105,8 +145,12 @@
     frame.size.width = kFCPopContentWidth;
     _topView.frame = frame;
     
+    self.topViewLine.frame = CGRectMake(0,frame.size.height-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
+    
     _contentView.frame = CGRectMake(0, CGRectGetMaxY(_topView.frame), kFCPopContentWidth, 10);
     [self layoutContentView];
+    
+    self.contentViewLine.frame = CGRectMake(0,CGRectGetMaxY(_contentView.frame)-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
     
     frame = _bottomView.frame;
     frame.origin.x = 0;
@@ -121,19 +165,28 @@
     CGFloat width = _contentView.frame.size.width;
     
     NSInteger scrollStart = _scrollRange.location;
-    NSInteger scrollEnd = MIN(_items.count-1, _scrollRange.location+_scrollRange.length-1);
+    NSInteger scrollEnd = MIN(_items.count, _scrollRange.location+_scrollRange.length)-1;
     
     CGFloat curY1 = 0;  //外层
     CGFloat curY2 = 0, innerStart = 0;  //内层，滚动区域
-    for (int i = 0; i<_itemViews.count; i++) {
+    for (int i = 0; i<_itemBoxs.count; i++) {
         
+        FCPopItemBox *box = _itemBoxs[i];
         BOOL inScrollRange = i>=scrollStart && i<=scrollEnd;
         
-        CGRect frame = _itemViews[i].frame;
+        CGRect frame = box.displayView.frame;
         frame.origin.x = 0;
         frame.origin.y = inScrollRange?curY2:curY1;
         frame.size.width = width;
-        _itemViews[i].frame = frame;
+        box.displayView.frame = frame;
+        [box.controller layoutDisplayView];
+        
+        //最后一个视图不加分割线，避免和contentViewLine重叠
+        if (_showSeparateLine && !box.separateLine &&
+            (i != _itemBoxs.count-1 && i != scrollEnd)) {
+            box.separateLine = [self addBottomLineTo:box.displayView];
+        }
+        box.separateLine.frame = CGRectMake(_separateInsets.left, frame.size.height-kFCPopLineWidth, frame.size.width-_separateInsets.left-_separateInsets.right, kFCPopLineWidth);
         
         if (inScrollRange) {
             curY2 += frame.size.height;
@@ -144,6 +197,8 @@
         //从内层跳回外层，内层的高度叠加到外层
         if (i == scrollEnd) {
             curY1 += MIN(curY2, self.scrollZoneMaxHeight);
+            
+            self.scrollBottomLine.frame = CGRectMake(_separateInsets.left, curY1-kFCPopLineWidth, frame.size.width-_separateInsets.left-_separateInsets.right, kFCPopLineWidth);
         }else if (i == scrollStart){
             innerStart = curY1; //内层开始位置
         }
@@ -155,6 +210,81 @@
     
     _scrollZone.frame = CGRectMake(0, innerStart, width, MIN(curY2, self.scrollZoneMaxHeight));
     _scrollZone.contentSize = CGSizeMake(width, curY2);
+}
+
+#pragma mark - 属性调整
+
+-(void)setCornerRadius:(CGFloat)cornerRadius{
+    self.layer.cornerRadius = cornerRadius;
+    self.layer.masksToBounds = YES;
+}
+
+-(void)setShowSeparateLine:(BOOL)showSeparateLine{
+    _showSeparateLine = showSeparateLine;
+    
+    if (!_scrollBottomLine) { //没生产过
+        [self setNeedsLayout];
+    }else{
+        self.scrollBottomLine.hidden = !_showSeparateLine;
+        
+        for (FCPopItemBox *box in _itemBoxs) {
+            box.separateLine.hidden = !_showSeparateLine;
+        }
+    }
+}
+
+-(void)setSeparateInsets:(UIEdgeInsets)separateInsets{
+    _separateInsets = separateInsets;
+    [self setNeedsLayout];
+}
+
+-(void)setSeparateColor:(UIColor *)separateColor{
+    _separateColor = separateColor;
+    
+    self.topViewLine.backgroundColor = separateColor;
+    self.contentViewLine.backgroundColor = separateColor;
+    self.scrollBottomLine.backgroundColor = separateColor;
+    
+    for (FCPopItemBox *box in _itemBoxs) {
+        box.separateLine.backgroundColor = separateColor;
+    }
+}
+
+#pragma mark - 工具方法和懒加载
+
+-(UIView *)addBottomLineTo:(UIView *)view{
+    UIView *line = [[UIView alloc] init];
+    line.backgroundColor = _separateColor;
+    [view addSubview:line];
+    
+    return line;
+}
+
+-(UIView *)contentViewLine{
+    if (!_contentViewLine) {
+        _contentViewLine = [[UIView alloc] init];
+        _contentViewLine.backgroundColor = _separateColor;
+        [self addSubview:_contentViewLine];
+    }
+    return _contentViewLine;
+}
+
+-(UIView *)scrollBottomLine{
+    if (!_scrollBottomLine && _showSeparateLine) {
+        _scrollBottomLine = [[UIView alloc] init];
+        _scrollBottomLine.backgroundColor = _separateColor;
+        [_contentView addSubview:_scrollBottomLine];
+    }
+    return _scrollBottomLine;
+}
+
+-(UIView *)topViewLine{
+    if (!_topViewLine) {
+        _topViewLine = [[UIView alloc] init];
+        _topViewLine.backgroundColor = _separateColor;
+        [self addSubview:_topViewLine];
+    }
+    return _topViewLine;
 }
 
 @end

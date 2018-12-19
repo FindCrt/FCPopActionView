@@ -9,7 +9,8 @@
 #import "ViewController.h"
 #import "FCPopDisplayer.h"
 #import "FCPopActionView.h"
-#import "SampleTextController.h"
+#import "FCPopTextController.h"
+#import "UIColor+RandomColor.h"
 
 @interface ViewController ()<FCPopDisplayDelegate, FCPopActionViewDelegate>{
     UILabel *_orangeView;
@@ -51,24 +52,28 @@
 }
 
 -(void)setupActionView{
-    _actionView = [[FCPopActionView alloc] initWithFrame:CGRectMake(10, 100, 200, 200)];
+    _actionView = [[FCPopActionView alloc] initWithFrame:CGRectMake(10, 100, [UIScreen mainScreen].bounds.size.width-20, 200)];
     _actionView.delegate = self;
     
-    UILabel *topView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 40)];
-    topView.backgroundColor = [UIColor orangeColor];
-    topView.text = @"我来组成头部";
+    UILabel *topView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 60)];
+//    topView.backgroundColor = [UIColor orangeColor];
+    topView.text = @"上网";
+    topView.textAlignment = NSTextAlignmentCenter;
     _actionView.topView = topView;
     
     UIButton *bottomView = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 200, 60)];
-    bottomView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1];
-    [bottomView setTitle:@"核按钮，来~" forState:(UIControlStateNormal)];
+//    bottomView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1];
+    [bottomView setTitle:@"取消" forState:(UIControlStateNormal)];
     [bottomView addTarget:self action:@selector(handleButton:) forControlEvents:(UIControlEventTouchUpInside)];
+    [bottomView setTitleColor:[UIColor colorWithWhite:0.8 alpha:1] forState:(UIControlStateNormal)];
     _actionView.bottomView = bottomView;
     
-    NSArray *items = @[@"随",@"便",@"什",@"么",@"J",@"B",@"文",@"字",@"都",@"可",@"以"];
+    NSArray *items = @[@"中国联通\n175",@"中国移动\n+86158",@"中国移动\n+86158",@"中国移动\n+86158",@"中国移动\n+86158",@"中国移动\n+86158",@"中国移动\n+86158",@"中国移动\n+86158"];
     _actionView.items = items;
     _actionView.scrollRange = NSMakeRange(2, 7);
     _actionView.scrollZoneMaxHeight = 100;
+    _actionView.cornerRadius = 10;
+    _actionView.separateInsets = UIEdgeInsetsMake(0, 30, 0, 30);
 }
 
 -(void)handleButton:(UIButton *)button{
@@ -85,7 +90,7 @@
     _displayer.delegate = self;
     
     _displayer.popView = _actionView;
-    _displayer.bgView.backgroundColor = [UIColor clearColor];
+//    _displayer.bgView.backgroundColor = [UIColor clearColor];
     
 //    FCPopDisplayer_point *dispPoint = (FCPopDisplayer_point *)_displayer;
 //    dispPoint.triggerView = sender;
@@ -94,6 +99,14 @@
 //    dispPoint.animationType = FCPopDisplayerAnimTypeScale;
 //    dispPoint.squeezeByScreen = YES;
 //    dispPoint.margins = UIEdgeInsetsMake(20, 30, 40, 50);
+    
+//    _actionView.showSeparateLine = !_actionView.showSeparateLine;
+    UIEdgeInsets insets = _actionView.separateInsets;
+    insets.left += 10;
+    insets.right += 10;
+    _actionView.separateInsets = insets;
+    
+    _actionView.separateColor = [UIColor randomColor];
     
     [_displayer show];
 }
@@ -114,7 +127,9 @@
 #pragma mark - actionView delegate
 
 -(FCPopItemController *)popActionView:(FCPopActionView *)actionView itemControllerForItem:(id)item{
-    SampleTextController *controller = [[SampleTextController alloc] initWithItem:item];
+    FCPopTextController *controller = [[FCPopTextController alloc] initWithItem:item];
+    controller.margin = 30;
+    controller.height = 60;
     return controller;
 }
 

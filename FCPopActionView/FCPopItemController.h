@@ -16,4 +16,6 @@
 
 @property (nonatomic, readonly) UIView *displayView;
 
+-(void)layoutDisplayView;
+
 @end
