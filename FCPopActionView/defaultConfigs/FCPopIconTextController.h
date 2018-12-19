@@ -16,6 +16,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic) UILabel *titleLabel;
 
+@property (nonatomic) UIColor *backgroundColor;
+
+/** 图片宽高 */
+@property (nonatomic) CGFloat iconWidth;
+
 /** 指定高度 默认44 */
 @property (nonatomic) CGFloat height;
 

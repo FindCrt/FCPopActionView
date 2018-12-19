@@ -25,11 +25,10 @@
 @implementation FCPopDisplayer_screenEdge
 
 -(void)show{
-    [super show];
-    
-    if (!self.popView) {
+    if (![self canDisplay]) {
         return;
     }
+    
     UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
     
     [keyWindow addSubview:self.bgView];
@@ -42,13 +41,15 @@
         [self showCompleted];
     };
     
+    CGFloat gapSpace = self.gapSpace;
+    
     if (self.position == FCPopDisplayPositionBottom) {
         
         popView.frame = CGRectMake(kScreenWidth/2.0-popView.frame.size.width/2.0, kScreenHeight, popView.frame.size.width, popView.frame.size.height);
         
         [UIView animateWithDuration:self.duration animations:^{
             CGRect frame = popView.frame;
-            frame.origin.y -= frame.size.height;
+            frame.origin.y -= frame.size.height+gapSpace;
             popView.frame = frame;
             
             self.bgView.alpha = kBGViewAlpha;
@@ -59,7 +60,7 @@
         
         [UIView animateWithDuration:self.duration animations:^{
             CGRect frame = popView.frame;
-            frame.origin.y = 0;
+            frame.origin.y = gapSpace;
             popView.frame = frame;
             
             self.bgView.alpha = kBGViewAlpha;
@@ -70,7 +71,7 @@
         
         [UIView animateWithDuration:self.duration animations:^{
             CGRect frame = popView.frame;
-            frame.origin.x += frame.size.width;
+            frame.origin.x = gapSpace;
             popView.frame = frame;
             
             self.bgView.alpha = kBGViewAlpha;
@@ -81,7 +82,7 @@
         
         [UIView animateWithDuration:self.duration animations:^{
             CGRect frame = popView.frame;
-            frame.origin.x -= frame.size.width;
+            frame.origin.x -= frame.size.width+gapSpace;
             popView.frame = frame;
             
             self.bgView.alpha = kBGViewAlpha;
@@ -153,6 +154,7 @@
     self = [super init];
     if (self) {
         _arrowSize = CGSizeMake(10, 10);
+        _startScale = 0.3f;
     }
     return self;
 }
@@ -160,6 +162,9 @@
 //被屏幕遮挡后的可见程度
 -(float)visibleRateForFrame:(CGRect)frame margins:(UIEdgeInsets)margins{
     CGFloat size = frame.size.width*frame.size.height;
+    if (size == 0) {
+        return 1;
+    }
     
     CGFloat overlapW = MAX(0, MIN(kScreenWidth-margins.right, CGRectGetMaxX(frame))-MAX(margins.left, frame.origin.x));
     CGFloat overlapH = MAX(0, MIN(kScreenHeight-margins.bottom, CGRectGetMaxY(frame))-MAX(margins.top, frame.origin.y));
@@ -195,6 +200,11 @@
     
     *effPosition = position;
     
+    CGFloat marginLeft = _margins.left;
+    CGFloat marginRight = kScreenWidth-_margins.right;
+    CGFloat marginTop = _margins.top;
+    CGFloat marginBottom = kScreenHeight-_margins.bottom;
+    
     CGRect frame = self.popView.frame;
     //转到window坐标系, self.triggerView为空，则定位到坐标原点
     CGRect triggerFrame = [self.triggerView convertRect:self.triggerView.bounds toView:[UIApplication sharedApplication].keyWindow];
@@ -202,9 +212,9 @@
     if (position == FCPopDisplayPositionBottom) {
         //先让弹框和触发view竖直中心线重合，如果超出屏幕，在左右移动调整
         frame.origin.x = CGRectGetMidX(triggerFrame)-frame.size.width/2.0;
-        frame.origin.x = MAX(0, frame.origin.x); //防止左边超出屏幕
+        frame.origin.x = MAX(marginLeft, frame.origin.x); //防止左边超出屏幕
         //防止右边
-        frame.origin.x = MIN(kScreenWidth-frame.size.width, frame.origin.x);
+        frame.origin.x = MIN(marginRight-frame.size.width, frame.origin.x);
         
         frame.origin.y = self.overlap?CGRectGetMinY(triggerFrame):CGRectGetMaxY(triggerFrame);
         
@@ -212,9 +222,9 @@
         
         //先让弹框和触发view竖直中心线重合，如果超出屏幕，在左右移动调整
         frame.origin.x = CGRectGetMidX(triggerFrame)-frame.size.width/2.0;
-        frame.origin.x = MAX(0, frame.origin.x); //防止左边超出屏幕
+        frame.origin.x = MAX(marginLeft, frame.origin.x); //防止左边超出屏幕
         //防止右边
-        frame.origin.x = MIN(kScreenWidth-frame.size.width, frame.origin.x);
+        frame.origin.x = MIN(marginRight-frame.size.width, frame.origin.x);
         
         frame.origin.y = (self.overlap?CGRectGetMaxY(triggerFrame):CGRectGetMinY(triggerFrame))-frame.size.height;
         
@@ -222,15 +232,15 @@
         frame.origin.x = (self.overlap?CGRectGetMaxX(triggerFrame):CGRectGetMinX(triggerFrame))-frame.size.width;
         
         frame.origin.y = CGRectGetMidY(triggerFrame)-frame.size.height/2.0;
-        frame.origin.y = MAX(0, frame.origin.y);
-        frame.origin.y = MIN(kScreenHeight-frame.size.height, frame.origin.y);
+        frame.origin.y = MAX(marginTop, frame.origin.y);
+        frame.origin.y = MIN(marginBottom-frame.size.height, frame.origin.y);
         
     }else if (position == FCPopDisplayPositionRight){
         frame.origin.x = self.overlap?CGRectGetMinX(triggerFrame):CGRectGetMaxX(triggerFrame);
         
         frame.origin.y = CGRectGetMidY(triggerFrame)-frame.size.height/2.0;
-        frame.origin.y = MAX(0, frame.origin.y);
-        frame.origin.y = MIN(kScreenHeight-frame.size.height, frame.origin.y);
+        frame.origin.y = MAX(marginTop, frame.origin.y);
+        frame.origin.y = MIN(marginBottom-frame.size.height, frame.origin.y);
         
     }else if (position == FCPopDisplayPositionAuto){
         
@@ -297,11 +307,10 @@
 }
 
 -(void)show{
-    [super show];
-    
-    if (!self.popView) {
+    if (![self canDisplay]) {
         return;
     }
+    
     UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
     
     [keyWindow addSubview:self.bgView];
@@ -321,21 +330,27 @@
 
     popView.frame = _popViewFrame;
     
+    float preAlpha = popView.alpha;
+    
     if (_showArrow && !_overlap) {
         [self addArrowBorderForView:popView at:_arrowPoint];
     }
     
-    if (_animationType == FCPopDisplayerAnimTypeScale) {
+    if (_animationType == FCPopDisplayerAnimTypeScale ||
+        _animationType == FCPopDisplayerAnimTypeScaleAndFade) {
         
         //TODO: spring animation
         
         CGAffineTransform preTransform = popView.transform;
         [self changeAnchorPoint];
         
-        popView.transform = CGAffineTransformScale(popView.transform, 0.3, 0.3);
+        popView.transform = CGAffineTransformScale(popView.transform, _startScale, _startScale);
+        
+        if (_animationType == FCPopDisplayerAnimTypeScaleAndFade) popView.alpha = 0;
         
         [UIView animateWithDuration:self.duration animations:^{
             
+            popView.alpha = preAlpha;
             popView.transform = preTransform;
             self.bgView.alpha = kBGViewAlpha;
             
@@ -348,7 +363,7 @@
         popView.alpha = 0;
         [UIView animateWithDuration:self.duration animations:^{
             
-            popView.alpha = 1;
+            popView.alpha = preAlpha;
             self.bgView.alpha = kBGViewAlpha;
             
         } completion:^(BOOL finished) {
@@ -359,19 +374,25 @@
 
 -(void)hide{
     UIView *popView = self.popView;
+    float preAlpha = popView.alpha;
     
-    if (_animationType == FCPopDisplayerAnimTypeScale) {
+    if (_animationType == FCPopDisplayerAnimTypeScale ||
+        _animationType == FCPopDisplayerAnimTypeScaleAndFade) {
         CGAffineTransform preTransform = popView.transform;
 
+        
+        BOOL fadeEffect = _animationType == FCPopDisplayerAnimTypeScaleAndFade;
         [UIView animateWithDuration:self.duration animations:^{
             
-            popView.transform = CGAffineTransformScale(popView.transform, 0.1, 0.1);
+            if (fadeEffect) popView.alpha = 0;
+            popView.transform = CGAffineTransformScale(popView.transform, self->_startScale, self->_startScale);
             self.bgView.alpha = kBGViewAlpha;
             
         } completion:^(BOOL finished) {
             [self.bgView removeFromSuperview];
             [self.popView removeFromSuperview];
             
+            popView.alpha = preAlpha;
             popView.transform = preTransform;
             if (self.showArrow) {
                 [self.popView removeFCBorder];
@@ -389,7 +410,7 @@
             
         } completion:^(BOOL finished) {
             
-            popView.alpha = 1;
+            popView.alpha = preAlpha;
             [self.bgView removeFromSuperview];
             [self.popView removeFromSuperview];
             if (self.showArrow) {
@@ -451,11 +472,10 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 }
 
 -(void)show{
-    [super show];
-    
-    if (!self.popView) {
+    if (![self canDisplay]) {
         return;
     }
+    
     _showing = YES;
     UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
     
@@ -534,11 +554,25 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 }
 
 -(void)show{
-    [self.popView layoutIfNeeded];
+    
 }
 
 -(void)hide{
     
+}
+
+-(BOOL)canDisplay{
+    if (!_popView) {
+        return NO;
+    }
+    
+    [_popView setNeedsLayout];
+    [_popView layoutIfNeeded];
+    if (_popView.frame.size.width == 0 || _popView.frame.size.height == 0) {
+        return NO;
+    }
+    
+    return YES;
 }
 
 -(void)showCompleted{

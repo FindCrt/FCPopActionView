@@ -28,7 +28,6 @@
         [_contentView addSubview:_iconView];
         
         _titleLabel = [[UILabel alloc] init];
-        _titleLabel.textAlignment = NSTextAlignmentCenter;
         _titleLabel.numberOfLines = 0;
         [_contentView addSubview:_titleLabel];
         
@@ -60,8 +59,16 @@
     frame.size.height = _height;
     _contentView.frame = frame;
     
-    _iconView.center = CGPointMake(10+_iconView.frame.size.width/2.0, _height/2.0);
+    CGFloat iconW = _iconWidth;
+    if (iconW == 0) {
+        iconW = MAX(_iconView.image.size.width, _iconView.image.size.height);
+    }
+    _iconView.frame = CGRectMake(10, _height/2.0-iconW/2.0, iconW, iconW);
     _titleLabel.frame = CGRectMake(CGRectGetMaxX(_iconView.frame)+10, 0, frame.size.width-CGRectGetMaxX(_iconView.frame)-20, _height);
+}
+
+-(void)setBackgroundColor:(UIColor *)backgroundColor{
+    _contentView.backgroundColor = backgroundColor;
 }
 
 -(UIView *)displayView{

@@ -52,6 +52,8 @@ typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
 -(void)show;
 -(void)hide;
 
+-(BOOL)canDisplay;
+
 @property (nonatomic) UIView *popView;
 @property (nonatomic) id<FCPopDisplayDelegate> delegate;
 
@@ -62,11 +64,15 @@ typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
 
 @interface FCPopDisplayer_screenEdge : FCPopDisplayer
 
+/** 和屏幕的间距 */
+@property (nonatomic) CGFloat gapSpace;
+
 @end
 
 typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
     FCPopDisplayerAnimTypeScale,
     FCPopDisplayerAnimTypeFade,
+    FCPopDisplayerAnimTypeScaleAndFade
 };
 
 @interface FCPopDisplayer_point : FCPopDisplayer
@@ -78,12 +84,15 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 
 /** 弹框是否重叠triggerView */
 @property (nonatomic) BOOL overlap;
-/** 动画形式 */
-@property (nonatomic) FCPopDisplayerAnimType animationType;
 /** 如果超出屏幕，则缩小size挤压在屏幕内 */
 @property (nonatomic) BOOL squeezeByScreen;
 /** 边距，squeezeByScreen为YES时才有意义 */
 @property (nonatomic) UIEdgeInsets margins;
+
+/** 动画形式 */
+@property (nonatomic) FCPopDisplayerAnimType animationType;
+/** 缩放动画的其实缩放程度，默认0.3 */
+@property (nonatomic) float startScale;
 
 @end
 

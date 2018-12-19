@@ -92,6 +92,12 @@
     [self reloadData];
 }
 
+-(void)setDelegate:(id<FCPopActionViewDelegate>)delegate{
+    _delegate = delegate;
+    
+    [self reloadData];
+}
+
 -(void)setScrollRange:(NSRange)scrollRange{
     _scrollRange = scrollRange;
     
@@ -158,7 +164,8 @@
     frame.size.width = kFCPopContentWidth;
     _bottomView.frame = frame;
     
-    self.bounds = CGRectMake(0, 0, self.bounds.size.width, CGRectGetMaxY(_bottomView.frame));
+    CGFloat totalHeight = CGRectGetMaxY(_contentView.frame)+frame.size.height;
+    self.bounds = CGRectMake(0, 0, self.bounds.size.width, totalHeight);
 }
 
 -(void)layoutContentView{
