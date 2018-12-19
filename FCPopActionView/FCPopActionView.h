@@ -26,7 +26,7 @@
 @property (nonatomic) id<FCPopActionViewDelegate> delegate;
 
 @property (nonatomic) NSRange scrollRange;
-@property (nonatomic) CGFloat scrollZoneHeight;
+@property (nonatomic) CGFloat scrollZoneMaxHeight;
 
 
 -(void)reloadData;

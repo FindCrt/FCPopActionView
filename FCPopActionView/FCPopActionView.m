@@ -28,6 +28,7 @@
         
         _scrollZone = [[UIScrollView alloc] init];
         _scrollZone.showsVerticalScrollIndicator = NO;
+        _scrollZoneMaxHeight = INT_MAX;
         
         _contentView = [[UIView alloc] init];
         [self addSubview:_contentView];
@@ -40,6 +41,8 @@
     
     _topView = topView;
     [self addSubview:_topView];
+    
+    [self setNeedsLayout];
 }
 
 -(void)setBottomView:(UIView *)bottomView{
@@ -47,10 +50,18 @@
     
     _bottomView = bottomView;
     [self addSubview:_bottomView];
+    
+    [self setNeedsLayout];
 }
 
 -(void)setItems:(NSArray *)items{
     _items = items;
+    
+    [self reloadData];
+}
+
+-(void)setScrollRange:(NSRange)scrollRange{
+    _scrollRange = scrollRange;
     
     [self reloadData];
 }
@@ -63,8 +74,8 @@
     
     [_itemViews removeAllObjects];
     
-    [_scrollZone.subviews makeObjectsPerformSelector:@selector(removeAllObjects)];
-    [_contentView.subviews makeObjectsPerformSelector:@selector(removeAllObjects)];
+    [_scrollZone.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [_contentView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     [_contentView addSubview:_scrollZone];
     
     NSInteger scrollStart = _scrollRange.location;
@@ -102,6 +113,8 @@
     frame.origin.y = CGRectGetMaxY(_contentView.frame);
     frame.size.width = kFCPopContentWidth;
     _bottomView.frame = frame;
+    
+    self.bounds = CGRectMake(0, 0, self.bounds.size.width, CGRectGetMaxY(_bottomView.frame));
 }
 
 -(void)layoutContentView{
@@ -111,7 +124,7 @@
     NSInteger scrollEnd = MIN(_items.count-1, _scrollRange.location+_scrollRange.length-1);
     
     CGFloat curY1 = 0;  //外层
-    CGFloat curY2 = 0;  //内层，滚动区域
+    CGFloat curY2 = 0, innerStart = 0;  //内层，滚动区域
     for (int i = 0; i<_itemViews.count; i++) {
         
         BOOL inScrollRange = i>=scrollStart && i<=scrollEnd;
@@ -130,9 +143,18 @@
         
         //从内层跳回外层，内层的高度叠加到外层
         if (i == scrollEnd) {
-            curY1 += curY2;
+            curY1 += MIN(curY2, self.scrollZoneMaxHeight);
+        }else if (i == scrollStart){
+            innerStart = curY1; //内层开始位置
         }
     }
+    
+    CGRect frame = _contentView.frame;
+    frame.size.height = curY1;
+    _contentView.frame = frame;
+    
+    _scrollZone.frame = CGRectMake(0, innerStart, width, MIN(curY2, self.scrollZoneMaxHeight));
+    _scrollZone.contentSize = CGSizeMake(width, curY2);
 }
 
 @end

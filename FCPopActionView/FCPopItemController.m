@@ -10,4 +10,11 @@
 
 @implementation FCPopItemController
 
+-(instancetype)initWithItem:(id)item{
+    if (self = [super init]) {
+        self.item = item;
+    }
+    return self;
+}
+
 @end

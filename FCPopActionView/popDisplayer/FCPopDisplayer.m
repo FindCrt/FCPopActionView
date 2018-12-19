@@ -25,6 +25,8 @@
 @implementation FCPopDisplayer_screenEdge
 
 -(void)show{
+    [super show];
+    
     if (!self.popView) {
         return;
     }
@@ -295,6 +297,7 @@
 }
 
 -(void)show{
+    [super show];
     
     if (!self.popView) {
         return;
@@ -359,17 +362,17 @@
     
     if (_animationType == FCPopDisplayerAnimTypeScale) {
         CGAffineTransform preTransform = popView.transform;
-        [self changeAnchorPoint];
+
         [UIView animateWithDuration:self.duration animations:^{
             
             popView.transform = CGAffineTransformScale(popView.transform, 0.1, 0.1);
             self.bgView.alpha = kBGViewAlpha;
             
         } completion:^(BOOL finished) {
-            popView.transform = preTransform;
-            
             [self.bgView removeFromSuperview];
             [self.popView removeFromSuperview];
+            
+            popView.transform = preTransform;
             if (self.showArrow) {
                 [self.popView removeFCBorder];
             }
@@ -448,6 +451,8 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 }
 
 -(void)show{
+    [super show];
+    
     if (!self.popView) {
         return;
     }
@@ -528,12 +533,10 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
     return self;
 }
 
-///基类不做任何处理
 -(void)show{
-    
+    [self.popView layoutIfNeeded];
 }
 
-///基类不做任何处理
 -(void)hide{
     
 }

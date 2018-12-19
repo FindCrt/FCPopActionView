@@ -6,9 +6,11 @@
 //  Copyright © 2018年 shiwei. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 @interface FCPopItemController : NSObject
+
+-(instancetype)initWithItem:(id)item;
 
 @property (nonatomic) id item;
 
