@@ -13,6 +13,9 @@
 
 #import <UIKit/UIKit.h>
 #import "FCPopActionViewDef.h"
+#import "FCPopItemController.h"
+
+@class FCPopItemBox;
 
 @interface FCPopActionView : UIView
 
@@ -22,6 +25,7 @@
 @property (nonatomic, readonly) UIView *contentView;
 
 @property (nonatomic) NSArray *items;
+@property (nonatomic, readonly) NSArray<FCPopItemBox *> *itemBoxs;
 
 @property (nonatomic) id<FCPopActionViewDelegate> delegate;
 
@@ -30,7 +34,8 @@
 
 
 -(void)reloadData;
-
+/** 子类可重载 */
+-(FCPopItemController *)getControllerForItem:(id)item;
 
 @property (nonatomic) BOOL showSeparateLine;
 @property (nonatomic) UIEdgeInsets separateInsets;
@@ -40,5 +45,21 @@
 
 @property (nonatomic) CGFloat topSpace;
 @property (nonatomic) CGFloat bottomSpace;
+
+/** 子类可重载 */
+-(void)clickedItem:(FCPopItemBox *)itemBox;
+
+@end
+
+
+#pragma mark -
+
+//相关的数据做了一个包装
+@interface FCPopItemBox : NSObject
+
+@property (nonatomic) id item;
+@property (nonatomic) FCPopItemController *controller;
+@property (nonatomic) UIView *displayView;
+@property (nonatomic) UIView *separateLine;
 
 @end

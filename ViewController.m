@@ -14,6 +14,7 @@
 #import "UIColor+RandomColor.h"
 #import "FCPopTitleView.h"
 #import "UIView+Border.h"
+#import "FCPopSimpleView.h"
 
 #define kScreenHeight ([UIScreen mainScreen].bounds.size.height)
 #define kScreenWidth ([UIScreen mainScreen].bounds.size.width)
@@ -38,6 +39,10 @@
     //网易云音乐底部弹框(滚动+标题+半圆角)
     UIButton *_wyButton;
     FCPopActionView *_wyPopView;
+    
+    //使用子类FCPopSimpleView来构建网易云音乐弹框
+    UIButton *_wyButton2;
+    FCPopSimpleView *_wyPopView2;
 }
 @property (weak, nonatomic) IBOutlet UIButton *triggerButton;
 
@@ -63,24 +68,10 @@
     //网易云音乐
     [self setWyButton];
     [self setWyBottomPopView];
-}
-
--(void)handleButton:(UIButton *)button{
-    NSLog(@"蘑菇云");
-}
-
-//测试1：popView的transform不是identify
--(void)changePopViewTransform{
-//    _orangeView.transform = CGAffineTransformMakeScale(0.8, 0.2);
-}
-
-- (IBAction)showPopView:(id)sender {
     
-    [self showWeChatPopView:sender];
-//    _actionView.showSeparateLine = !_actionView.showSeparateLine;
-    
-//    FCPopDisplayer_screenEdge *dispScreen = (FCPopDisplayer_screenEdge *)_displayer;
-//    dispScreen.gapSpace = 10;
+    //网易云音乐2
+    [self setWyButton2];
+    [self setWyBottomPopView2];
 }
 
 -(void)popViewDidShow:(UIView *)view{
@@ -88,12 +79,7 @@
 }
 
 -(void)popViewDidHide:(UIView *)view{
-//    _orangeView.frame = _transformedFrame;
-//    [self.view addSubview:_orangeView];
-}
-
--(void)handleAction:(UIButton *)button{
-    NSLog(@"handleAction");
+    NSLog(@"hided");
 }
 
 #pragma mark - 微信弹框样式
@@ -279,8 +265,8 @@
                        @[@"wy2",@"打开驾驶模式"],
                        ];
     _wyPopView.items = items;
-    _wyPopView.scrollRange = NSMakeRange(0, items.count);
-    _wyPopView.scrollZoneMaxHeight = 350;
+    _wyPopView.scrollRange = NSMakeRange(1, 7);
+    _wyPopView.scrollZoneMaxHeight = 200;
     _wyPopView.separateInsets = UIEdgeInsetsMake(0, 50, 0, 0);
     
     //    _wyPopView.cornerRadius = 10;
@@ -293,6 +279,62 @@
     _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypeScreenEdge) position:(FCPopDisplayPositionBottom)];
     _displayer.delegate = self;
     _displayer.popView = _wyPopView;
+    _displayer.bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
+    
+    [_displayer show];
+}
+
+#pragma mark - 子类FCPopSimpleView构建网易云弹框样式
+
+-(void)setWyButton2{
+    _wyButton2 = [[UIButton alloc] initWithFrame:CGRectMake(120, 140, 140, 44)];
+    [_wyButton2 setTitle:@"网易云音乐 2号" forState:(UIControlStateNormal)];
+    [_wyButton2 setTitleColor:[UIColor whiteColor] forState:(UIControlStateNormal)];
+    _wyButton2.backgroundColor = [UIColor colorWithWhite:0.3 alpha:1];
+    _wyButton2.layer.borderColor = [UIColor colorWithWhite:0.5 alpha:1].CGColor;
+    
+    [_wyButton2 addTarget:self action:@selector(showWyBottomPopView2:) forControlEvents:(UIControlEventTouchUpInside)];
+    
+    [self.view addSubview:_wyButton2];
+}
+
+-(void)setWyBottomPopView2{
+    //只有宽度是有意义的，其他的会根据类型调整
+    _wyPopView2 = [[FCPopSimpleView alloc] initWithFrame:CGRectMake(10, 100, [UIScreen mainScreen].bounds.size.width, 100)];
+    _wyPopView2.backgroundColor = [UIColor colorWithWhite:243.0f/255 alpha:1];
+    
+    _wyPopView2.title = @"歌曲: 像我这样的人";
+    _wyPopView2.subtitle = @"您已开通音乐包，可下载且仅可在音乐包有效期内离线播放";
+    _wyPopView2.titleView.titleLabel.textColor = [UIColor colorWithWhite:100.0/255 alpha:1];
+    _wyPopView2.titleView.titleLabel.font = [UIFont systemFontOfSize:14];
+    _wyPopView2.titleView.margins = UIEdgeInsetsMake(10, 10, 0, 10);
+    _wyPopView2.titleView.frame = CGRectMake(0, 0, 100, 60);
+    
+    NSArray *icons = @[@"wy1",@"wy2",@"wy1",@"wy2",@"wy1",@"wy2",@"wy1",@"wy2",@"wy1",@"wy2"];
+    NSArray *titles = @[@"收藏到歌单",@"歌手:毛不易",@"专辑:平凡的一天", @"来源:专辑「平凡的一天」",@"音质:自动选择",@"鲸云音效",@"查看视频",@"相似推荐",@"定时停止播放",@"打开驾驶模式"];
+    _wyPopView2.items = [FCPopSimpleItem activeItemWithIcons:icons titles:titles];
+    
+    _wyPopView2.scrollRange = NSMakeRange(0, _wyPopView2.items.count);
+    _wyPopView2.scrollZoneMaxHeight = 300;
+    _wyPopView2.separateInsets = UIEdgeInsetsMake(0, 50, 0, 0);
+    
+    //    _wyPopView.cornerRadius = 10;
+    //只有上面两个角是圆角;这个方法依赖于当前的layer的大小，不会自动变化
+    [_wyPopView2 layoutIfNeeded];
+    [_wyPopView2 addBorderWithColor:[UIColor whiteColor] andWidth:0 andPostion:(FCBorderPositionAll) corners:(UIRectCornerTopLeft | UIRectCornerTopRight) radius:10];
+    
+    __weak typeof(self) weakSelf = self;
+    _wyPopView2.clickBlock = ^(FCPopSimpleView * _Nonnull actionView, FCPopSimpleItem * _Nonnull item) {
+        __strong typeof(self) strongSelf = weakSelf;
+        [strongSelf->_displayer hide];
+        NSLog(@"%@",item.title);
+    };
+}
+
+-(void)showWyBottomPopView2:(UIButton *)button{
+    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypeScreenEdge) position:(FCPopDisplayPositionBottom)];
+    _displayer.delegate = self;
+    _displayer.popView = _wyPopView2;
     _displayer.bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
     
     [_displayer show];
@@ -340,6 +382,24 @@
     }
     
     return nil;
+}
+
+-(void)popActionView:(FCPopActionView *)actionView clickedItemView:(UIView *)itemView relatedController:(FCPopItemController *)controller{
+    
+    if (actionView == _miBottomPopView) {
+        NSLog(@"小米 %@",controller.item);
+        
+    }else if (actionView == _weChatPopView){
+        NSLog(@"微信 %@",controller.item[1]);
+        
+    }else if (actionView == _qqPopView){
+        NSLog(@"QQ %@",controller.item[1]);
+        
+    }else if (actionView == _wyPopView){
+        NSLog(@"网易云音乐 %@",controller.item[1]);
+    }
+    
+    [_displayer hide];
 }
 
 @end

@@ -19,6 +19,8 @@
 -(instancetype)initWithFrame:(CGRect)frame{
     if (self = [super initWithFrame:frame]) {
         
+        _margins = UIEdgeInsetsMake(0, 10, 0, 10);
+        
         _titleLabel = [[UILabel alloc] init];
         [self addSubview:_titleLabel];
         

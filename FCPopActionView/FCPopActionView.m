@@ -11,16 +11,6 @@
 #define kFCPopContentWidth (self.frame.size.width)
 #define kFCPopLineWidth (1.0f/[UIScreen mainScreen].scale)
 
-//相关的数据做了一个包装
-@interface FCPopItemBox : NSObject
-
-@property (nonatomic) id item;
-@property (nonatomic) FCPopItemController *controller;
-@property (nonatomic) UIView *displayView;
-@property (nonatomic) UIView *separateLine;
-
-@end
-
 @implementation FCPopItemBox
 @end
 
@@ -62,6 +52,10 @@
         [self addSubview:_contentView];
         
         self.backgroundColor = [UIColor whiteColor];
+        
+        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+        tap.cancelsTouchesInView = NO;
+        [_contentView addGestureRecognizer:tap];
     }
     return self;
 }
@@ -108,10 +102,6 @@
 
 -(void)reloadData{
     
-    if (![self.delegate respondsToSelector:@selector(popActionView:itemControllerForItem:)]) {
-        return;
-    }
-    
     for (FCPopItemBox *box in _itemBoxs) {
         [box.displayView removeFromSuperview];
         [box.separateLine removeFromSuperview];
@@ -126,7 +116,7 @@
     NSInteger scrollEnd = MIN(_items.count, _scrollRange.location+_scrollRange.length)-1;
     
     for (int i = 0; i<_items.count; i++) {
-        FCPopItemController *controller = [self.delegate popActionView:self itemControllerForItem:_items[i]];
+        FCPopItemController *controller = [self getControllerForItem:_items[i]];
         FCPopItemBox *box = [[FCPopItemBox alloc] init];
         box.item = _items[i];
         box.controller = controller;
@@ -142,6 +132,13 @@
     }
     
     [self setNeedsLayout];
+}
+
+-(FCPopItemController *)getControllerForItem:(id)item{
+    if ([self.delegate respondsToSelector:@selector(popActionView:itemControllerForItem:)]) {
+        return [self.delegate popActionView:self itemControllerForItem:item];
+    }
+    return nil;
 }
 
 -(void)layoutSubviews{
@@ -266,6 +263,41 @@
     
     for (FCPopItemBox *box in _itemBoxs) {
         box.separateLine.backgroundColor = separateColor;
+    }
+}
+
+#pragma mark - 处理交互
+
+-(void)handleTap:(UITapGestureRecognizer *)tap{
+    CGPoint location = [tap locationInView:_contentView];
+    BOOL clickInScrollZone = CGRectContainsPoint(_scrollZone.frame, location);
+    
+    NSInteger scrollStart = _scrollRange.location;
+    NSInteger scrollEnd = MIN(_items.count, _scrollRange.location+_scrollRange.length)-1;
+    
+    FCPopItemBox *clickedBox = nil;
+    
+    if (clickInScrollZone) {
+        location = [tap locationInView:_scrollZone];
+    }
+    
+    for (int i = 0; i<_itemBoxs.count; i++) {
+        BOOL inScrollRange = i>=scrollStart && i<=scrollEnd;
+        
+        if ((inScrollRange == clickInScrollZone) &&
+            CGRectContainsPoint(_itemBoxs[i].displayView.frame, location)) {
+            
+            clickedBox = _itemBoxs[i];
+            break;
+        }
+    }
+    
+    [self clickedItem:clickedBox];
+}
+
+-(void)clickedItem:(FCPopItemBox *)itemBox{
+    if ([self.delegate respondsToSelector:@selector(popActionView:clickedItemView:relatedController:)]) {
+        [self.delegate popActionView:self clickedItemView:itemBox.displayView relatedController:itemBox.controller];
     }
 }
 
