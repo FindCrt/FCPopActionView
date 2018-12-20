@@ -28,6 +28,10 @@
     //小米底部弹框
     UIButton *_miButton;
     FCPopActionView *_miBottomPopView;
+    
+    //QQ弹框(箭头+圆角+无分割线)
+    UIButton *_qqButton;
+    FCPopActionView *_qqPopView;
 }
 @property (weak, nonatomic) IBOutlet UIButton *triggerButton;
 
@@ -45,6 +49,10 @@
     //小米底部弹框
     [self setMiButton];
     [self setMiBottomPopView];
+    
+    //QQ弹框
+    [self setQQButton];
+    [self setQQPopView];
 }
 
 -(void)handleButton:(UIButton *)button{
@@ -173,6 +181,52 @@
     [_displayer show];
 }
 
+#pragma mark - QQ弹框样式
+
+-(void)setQQButton{
+    _qqButton = [[UIButton alloc] initWithFrame:CGRectMake(kScreenWidth-64, 140, 60, 44)];
+    [_qqButton setTitle:@"QQ+" forState:(UIControlStateNormal)];
+    _qqButton.backgroundColor = [UIColor colorWithRed:38.0f/255 green:166.0f/255 blue:255.0f/255 alpha:1];
+    [_qqButton addTarget:self action:@selector(showQQPopView:) forControlEvents:(UIControlEventTouchUpInside)];
+    [self.view addSubview:_qqButton];
+}
+
+-(void)setQQPopView{
+    _qqPopView = [[FCPopActionView alloc] initWithFrame:CGRectMake(0, 0, 180, 100)];
+    NSArray *items = @[
+                       @[@"q1",@"创建群聊"],
+                       @[@"q2",@"加好友/群"],
+                       @[@"q3",@"扫一扫"],
+                       @[@"q4",@"面对面快传"],
+                       @[@"q5",@"收付款"]
+                       ];
+    _qqPopView.items = items;
+    _qqPopView.delegate = self;
+    _qqPopView.topSpace = 10;  //给箭头留出的空间
+    _qqPopView.separateColor = [UIColor colorWithWhite:0.9 alpha:1];
+    _qqPopView.cornerRadius = 5;
+    _qqPopView.showSeparateLine = NO;
+}
+
+-(void)showQQPopView:(UIButton *)sender{
+    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypePoint) position:(FCPopDisplayPositionBottom)];
+    _displayer.delegate = self;
+    
+    _displayer.popView = _qqPopView;
+    _displayer.bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.15];
+    
+    FCPopDisplayer_point *dispPoint = (FCPopDisplayer_point *)_displayer;
+    dispPoint.triggerView = sender;
+    dispPoint.showArrow = YES;
+    dispPoint.arrowSize = CGSizeMake(18, 10);
+    dispPoint.overlap = NO;
+    dispPoint.animationType = FCPopDisplayerAnimTypeScaleAndFade;
+    dispPoint.margins = UIEdgeInsetsMake(0, 0, 0, 5);
+    dispPoint.startScale = 0.7;
+    
+    [_displayer show];
+}
+
 #pragma mark - actionView delegate
 
 -(FCPopItemController *)popActionView:(FCPopActionView *)actionView itemControllerForItem:(id)item{
@@ -190,6 +244,16 @@
         controller.titleLabel.text = info[1];
         controller.titleLabel.textColor = [UIColor whiteColor];
         controller.backgroundColor = [UIColor colorWithRed:55.0f/255 green:58.0f/255 blue:65.0f/255 alpha:1];
+        
+        return controller;
+        
+    }else if (actionView == _qqPopView){
+        NSArray *info = item;
+        FCPopIconTextController *controller = [[FCPopIconTextController alloc] initWithItem:item];
+        controller.iconView.image = [UIImage imageNamed:info.firstObject];
+        controller.titleLabel.text = info[1];
+        controller.titleLabel.textColor = [UIColor colorWithWhite:0.1 alpha:1];
+        controller.backgroundColor = [UIColor whiteColor];
         
         return controller;
     }

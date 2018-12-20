@@ -72,7 +72,7 @@
     _topView = topView;
     [self addSubview:_topView];
     
-    [_topView addSubview:self.topViewLine];
+    self.topViewLine.hidden = _topView == nil;
     
     [self setNeedsLayout];
 }
@@ -82,6 +82,8 @@
     
     _bottomView = bottomView;
     [self addSubview:_bottomView];
+    
+    self.contentViewLine.hidden = _bottomView == nil;
     
     [self setNeedsLayout];
 }
@@ -145,26 +147,35 @@
 -(void)layoutSubviews{
     [super layoutSubviews];
     
+    CGFloat currentY = _topSpace;
+    
     CGRect frame = _topView.frame;
-    frame.origin.y = 0;
+    frame.origin.y = currentY;
     frame.origin.x = 0;
     frame.size.width = kFCPopContentWidth;
     _topView.frame = frame;
+    currentY += frame.size.height;
     
-    self.topViewLine.frame = CGRectMake(0,frame.size.height-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
+    if (_topView) {
+        self.topViewLine.frame = CGRectMake(0,frame.size.height-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
+    }
     
-    _contentView.frame = CGRectMake(0, CGRectGetMaxY(_topView.frame), kFCPopContentWidth, 10);
+    _contentView.frame = CGRectMake(0, currentY, kFCPopContentWidth, 10);
     [self layoutContentView];
+    currentY += _contentView.frame.size.height;
     
-    self.contentViewLine.frame = CGRectMake(0,CGRectGetMaxY(_contentView.frame)-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
+    if (_bottomView) {
+        self.contentViewLine.frame = CGRectMake(0,CGRectGetMaxY(_contentView.frame)-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
+    }
     
     frame = _bottomView.frame;
     frame.origin.x = 0;
-    frame.origin.y = CGRectGetMaxY(_contentView.frame);
+    frame.origin.y = currentY;
     frame.size.width = kFCPopContentWidth;
     _bottomView.frame = frame;
+    currentY += frame.size.height;
     
-    CGFloat totalHeight = CGRectGetMaxY(_contentView.frame)+frame.size.height;
+    CGFloat totalHeight = currentY+_bottomSpace;
     self.bounds = CGRectMake(0, 0, self.bounds.size.width, totalHeight);
 }
 
@@ -205,6 +216,7 @@
         if (i == scrollEnd) {
             curY1 += MIN(curY2, self.scrollZoneMaxHeight);
             
+            self.scrollBottomLine.hidden = scrollEnd>=scrollStart;
             self.scrollBottomLine.frame = CGRectMake(_separateInsets.left, curY1-kFCPopLineWidth, frame.size.width-_separateInsets.left-_separateInsets.right, kFCPopLineWidth);
         }else if (i == scrollStart){
             innerStart = curY1; //内层开始位置
@@ -229,7 +241,7 @@
 -(void)setShowSeparateLine:(BOOL)showSeparateLine{
     _showSeparateLine = showSeparateLine;
     
-    if (!_scrollBottomLine) { //没生产过
+    if (!_scrollBottomLine) { //没生成过
         [self setNeedsLayout];
     }else{
         self.scrollBottomLine.hidden = !_showSeparateLine;
@@ -248,9 +260,9 @@
 -(void)setSeparateColor:(UIColor *)separateColor{
     _separateColor = separateColor;
     
-    self.topViewLine.backgroundColor = separateColor;
-    self.contentViewLine.backgroundColor = separateColor;
-    self.scrollBottomLine.backgroundColor = separateColor;
+    _topViewLine.backgroundColor = separateColor;
+    _contentViewLine.backgroundColor = separateColor;
+    _scrollBottomLine.backgroundColor = separateColor;
     
     for (FCPopItemBox *box in _itemBoxs) {
         box.separateLine.backgroundColor = separateColor;
@@ -267,13 +279,14 @@
     return line;
 }
 
--(UIView *)contentViewLine{
-    if (!_contentViewLine) {
-        _contentViewLine = [[UIView alloc] init];
-        _contentViewLine.backgroundColor = _separateColor;
-        [self addSubview:_contentViewLine];
+-(UIView *)topViewLine{
+    if (!_topViewLine) {
+        _topViewLine = [[UIView alloc] init];
+        _topViewLine.backgroundColor = _separateColor;
+        _topViewLine.hidden = YES;
+        [self addSubview:_topViewLine];
     }
-    return _contentViewLine;
+    return _topViewLine;
 }
 
 -(UIView *)scrollBottomLine{
@@ -285,13 +298,14 @@
     return _scrollBottomLine;
 }
 
--(UIView *)topViewLine{
-    if (!_topViewLine) {
-        _topViewLine = [[UIView alloc] init];
-        _topViewLine.backgroundColor = _separateColor;
-        [self addSubview:_topViewLine];
+-(UIView *)contentViewLine{
+    if (!_contentViewLine) {
+        _contentViewLine = [[UIView alloc] init];
+        _contentViewLine.backgroundColor = _separateColor;
+        _contentViewLine.hidden = YES;
+        [self addSubview:_contentViewLine];
     }
-    return _topViewLine;
+    return _contentViewLine;
 }
 
 @end

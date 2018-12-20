@@ -38,4 +38,7 @@
 
 @property (nonatomic) CGFloat cornerRadius;
 
+@property (nonatomic) CGFloat topSpace;
+@property (nonatomic) CGFloat bottomSpace;
+
 @end

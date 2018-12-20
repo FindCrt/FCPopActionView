@@ -11,7 +11,7 @@
 
 #define kScreenHeight ([UIScreen mainScreen].bounds.size.height)
 #define kScreenWidth ([UIScreen mainScreen].bounds.size.width)
-#define kBGViewAlpha 0.5f
+#define kBGViewAlpha 1
 
 @interface FCPopDisplayer ()
 @property (nonatomic) UIView *bgView;
@@ -294,8 +294,8 @@
         position = FCBorderPositionBottom;
         offset = arrowPoint.x;
     }
-    //TODO: 圆角的处理
-    [view addArrowBorderAt:position offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:0];
+    
+    [view addArrowBorderAt:position offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:self.popView.layer.cornerRadius];
 }
 
 //修改锚点是为了scale动画可以从某点逐渐放大，而不是默认的从中心放大
@@ -312,9 +312,7 @@
     }
     
     UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
-    
     [keyWindow addSubview:self.bgView];
-    self.bgView.alpha = 0;
     
     UIView *popView = self.popView;
     [keyWindow addSubview:popView];
@@ -329,7 +327,7 @@
     _arrowPoint = [self arrowPointForFrame:_popViewFrame point:triggerCenter position:effPosition];
 
     popView.frame = _popViewFrame;
-    
+    self.bgView.alpha = 0;
     float preAlpha = popView.alpha;
     
     if (_showArrow && !_overlap) {
@@ -338,8 +336,6 @@
     
     if (_animationType == FCPopDisplayerAnimTypeScale ||
         _animationType == FCPopDisplayerAnimTypeScaleAndFade) {
-        
-        //TODO: spring animation
         
         CGAffineTransform preTransform = popView.transform;
         [self changeAnchorPoint];
@@ -386,7 +382,7 @@
             
             if (fadeEffect) popView.alpha = 0;
             popView.transform = CGAffineTransformScale(popView.transform, self->_startScale, self->_startScale);
-            self.bgView.alpha = kBGViewAlpha;
+            self.bgView.alpha = 0;
             
         } completion:^(BOOL finished) {
             [self.bgView removeFromSuperview];
@@ -406,7 +402,7 @@
         [UIView animateWithDuration:self.duration animations:^{
             
             popView.alpha = 0;
-            self.bgView.alpha = kBGViewAlpha;
+            self.bgView.alpha = 0;
             
         } completion:^(BOOL finished) {
             
@@ -592,7 +588,7 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 -(UIView *)bgView{
     if (!_bgView) {
         _bgView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-        _bgView.backgroundColor = [UIColor blackColor];
+        _bgView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
         _bgView.alpha = kBGViewAlpha;
         
         UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hide)];
