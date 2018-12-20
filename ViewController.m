@@ -13,13 +13,21 @@
 #import "FCPopIconTextController.h"
 #import "UIColor+RandomColor.h"
 
+#define kScreenHeight ([UIScreen mainScreen].bounds.size.height)
+#define kScreenWidth ([UIScreen mainScreen].bounds.size.width)
+
 @interface ViewController ()<FCPopDisplayDelegate, FCPopActionViewDelegate>{
     UILabel *_orangeView;
     FCPopDisplayer *_displayer;
     CGRect _transformedFrame;
     
-    FCPopActionView *_actionView;
+    //微信弹框
+    UIButton *_weChatButton;
     FCPopActionView *_weChatPopView;
+    
+    //小米底部弹框
+    UIButton *_miButton;
+    FCPopActionView *_miBottomPopView;
 }
 @property (weak, nonatomic) IBOutlet UIButton *triggerButton;
 
@@ -30,51 +38,13 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    _orangeView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 120, 800)];
-    _orangeView.backgroundColor = [UIColor orangeColor];
-    _orangeView.font = [UIFont systemFontOfSize:30];
-    _orangeView.text = @"HELLO";
-    _orangeView.textAlignment = NSTextAlignmentCenter;
-    _orangeView.textColor = [UIColor whiteColor];
-    _orangeView.userInteractionEnabled = YES;
-    
-    UIButton *action = [[UIButton alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.size.width-40, 00, 40, 30)];
-    action.backgroundColor = [UIColor whiteColor];
-    [action setTitle:@"+" forState:(UIControlStateNormal)];
-    [action setTitleColor:[UIColor purpleColor] forState:(UIControlStateNormal)];
-    [action addTarget:self action:@selector(handleAction:) forControlEvents:(UIControlEventTouchUpInside)];
-    [_orangeView addSubview:action];
-    
-    [self changePopViewTransform];
-    _transformedFrame = _orangeView.frame;
-    
-//    [self.view insertSubview:_orangeView belowSubview:_triggerButton];
-    
+    //微信弹框
+    [self setWeChatButton];
     [self setWeChatPopView];
-}
-
--(void)setupActionView{
-    _actionView = [[FCPopActionView alloc] initWithFrame:CGRectMake(10, 100, [UIScreen mainScreen].bounds.size.width-20, 200)];
-    _actionView.delegate = self;
     
-    UILabel *topView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 60)];
-//    topView.backgroundColor = [UIColor orangeColor];
-    topView.text = @"上网";
-    topView.textAlignment = NSTextAlignmentCenter;
-    _actionView.topView = topView;
-    
-    UIButton *bottomView = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 200, 60)];
-//    bottomView.backgroundColor = [UIColor colorWithWhite:0.8 alpha:1];
-    [bottomView setTitle:@"取消" forState:(UIControlStateNormal)];
-    [bottomView addTarget:self action:@selector(handleButton:) forControlEvents:(UIControlEventTouchUpInside)];
-    [bottomView setTitleColor:[UIColor colorWithWhite:0.8 alpha:1] forState:(UIControlStateNormal)];
-    _actionView.bottomView = bottomView;
-    
-    NSArray *items = @[@"中国联通\n175",@"中国移动\n+86158"];
-    _actionView.items = items;
-    _actionView.scrollRange = NSMakeRange(2, 7);
-    _actionView.scrollZoneMaxHeight = 100;
-    _actionView.cornerRadius = 10;
+    //小米底部弹框
+    [self setMiButton];
+    [self setMiBottomPopView];
 }
 
 -(void)handleButton:(UIButton *)button{
@@ -110,6 +80,30 @@
 
 #pragma mark - 微信弹框样式
 
+-(void)setWeChatButton{
+    _weChatButton = [[UIButton alloc] initWithFrame:CGRectMake(kScreenWidth-64, 20, 60, 44)];
+    [_weChatButton setTitle:@"微信+" forState:(UIControlStateNormal)];
+    _weChatButton.backgroundColor = [UIColor colorWithWhite:0.15 alpha:1];
+    [_weChatButton addTarget:self action:@selector(showWeChatPopView:) forControlEvents:(UIControlEventTouchUpInside)];
+    [self.view addSubview:_weChatButton];
+}
+
+-(void)setWeChatPopView{
+    _weChatPopView = [[FCPopActionView alloc] initWithFrame:CGRectMake(0, 0, 200, 100)];
+    //只需要提供最关键的数据就可以了，核心在于怎么解析，解析靠的就是“FCPopItemController”
+    NSArray *items = @[
+                       @[@"1",@"发起群聊"],
+                       @[@"2",@"添加朋友"],
+                       @[@"3",@"扫一扫"],
+                       @[@"4",@"收付款"],
+                       @[@"5",@"帮助与反馈"]
+                       ];
+    _weChatPopView.items = items;
+    _weChatPopView.delegate = self;
+    //55 58 65, 43 46 53
+    _weChatPopView.separateColor = [UIColor colorWithRed:43.0f/255 green:46.0f/255 blue:53.0f/255 alpha:1];
+}
+
 -(void)showWeChatPopView:(UIButton *)sender{
     _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypePoint) position:(FCPopDisplayPositionBottom)];
     _displayer.delegate = self;
@@ -130,26 +124,60 @@
     [_displayer show];
 }
 
--(void)setWeChatPopView{
-    _weChatPopView = [[FCPopActionView alloc] initWithFrame:CGRectMake(0, 0, 200, 100)];
-    NSArray *items = @[
-                       @[@"1",@"发起群聊"],
-                       @[@"2",@"添加朋友"],
-                       @[@"3",@"扫一扫"],
-                       @[@"4",@"收付款"],
-                       @[@"5",@"帮助与反馈"]
-                       ];
-    _weChatPopView.items = items;
-    _weChatPopView.delegate = self;
-    //55 58 65, 43 46 53
-    _weChatPopView.separateColor = [UIColor colorWithRed:43.0f/255 green:46.0f/255 blue:53.0f/255 alpha:1];
+#pragma mark - 小米底部弹框样式
+
+-(void)setMiButton{
+    _miButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 80, kScreenWidth-20, 40)];
+    [_miButton setTitle:@"小米 上网卡" forState:(UIControlStateNormal)];
+    [_miButton setTitleColor:[UIColor colorWithWhite:0.2 alpha:1] forState:(UIControlStateNormal)];
+    _miButton.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
+    _miButton.layer.borderColor = [UIColor colorWithWhite:0.5 alpha:1].CGColor;
+    _miButton.layer.borderWidth = 0.5;
+    
+    [_miButton addTarget:self action:@selector(showMiBottomPopView:) forControlEvents:(UIControlEventTouchUpInside)];
+    
+    [self.view addSubview:_miButton];
+}
+
+-(void)setMiBottomPopView{
+    _miBottomPopView = [[FCPopActionView alloc] initWithFrame:CGRectMake(10, 100, [UIScreen mainScreen].bounds.size.width-20, 200)];
+    _miBottomPopView.delegate = self;
+    
+    UILabel *topView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 60)];
+    topView.text = @"上网";
+    topView.textAlignment = NSTextAlignmentCenter;
+    topView.font = [UIFont boldSystemFontOfSize:17];
+    _miBottomPopView.topView = topView;
+    
+    UIButton *bottomView = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 200, 60)];
+    [bottomView setTitle:@"取消" forState:(UIControlStateNormal)];
+    [bottomView addTarget:self action:@selector(handleButton:) forControlEvents:(UIControlEventTouchUpInside)];
+    [bottomView setTitleColor:[UIColor colorWithWhite:0.3 alpha:1] forState:(UIControlStateNormal)];
+    _miBottomPopView.bottomView = bottomView;
+    
+    NSArray *items = @[@"中国联通\n175",@"中国移动\n+86158"];
+    _miBottomPopView.items = items;
+    _miBottomPopView.scrollRange = NSMakeRange(2, 7);
+    _miBottomPopView.scrollZoneMaxHeight = 100;
+    _miBottomPopView.cornerRadius = 10;
+}
+
+-(void)showMiBottomPopView:(UIButton *)button{
+    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypeScreenEdge) position:(FCPopDisplayPositionBottom)];
+    _displayer.delegate = self;
+    _displayer.popView = _miBottomPopView;
+    
+    FCPopDisplayer_screenEdge *dispScreen = (FCPopDisplayer_screenEdge*)_displayer;
+    dispScreen.gapSpace = 10;
+    
+    [_displayer show];
 }
 
 #pragma mark - actionView delegate
 
 -(FCPopItemController *)popActionView:(FCPopActionView *)actionView itemControllerForItem:(id)item{
     
-    if (actionView == _actionView) {
+    if (actionView == _miBottomPopView) {
         FCPopTextController *controller = [[FCPopTextController alloc] initWithItem:item];
         controller.margin = 30;
         controller.height = 60;
