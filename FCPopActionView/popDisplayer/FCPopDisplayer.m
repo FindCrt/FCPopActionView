@@ -588,7 +588,7 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 -(UIView *)bgView{
     if (!_bgView) {
         _bgView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-        _bgView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
+        _bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
         _bgView.alpha = kBGViewAlpha;
         
         UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hide)];

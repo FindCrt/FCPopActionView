@@ -14,6 +14,7 @@ typedef NS_ENUM(NSInteger, FCBorderPosition) {
     FCBorderPositionLeft    = 1 << 1,
     FCBorderPositionBottom  = 1 << 2,
     FCBorderPositionRight   = 1 << 3,
+    FCBorderPositionAll     = FCBorderPositionTop | FCBorderPositionLeft | FCBorderPositionBottom | FCBorderPositionRight,
 };
 
 @interface UIView (Border)
