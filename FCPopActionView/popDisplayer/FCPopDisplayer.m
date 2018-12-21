@@ -25,6 +25,7 @@
 @implementation FCPopDisplayer_screenEdge
 
 -(void)show{
+    [super show];
     if (![self canDisplay]) {
         return;
     }
@@ -91,7 +92,7 @@
 }
 
 -(void)hide{
-    
+    [super hide];
     UIView *popView = self.popView;
     
     id completion = ^(BOOL finished){
@@ -143,6 +144,11 @@
 
 #pragma mark - 从某个点弹出
 
+@interface FCPopDisplayer_point ()
+@property (nonatomic) BOOL squeezeByScreen;
+@property (nonatomic) void (^squeezeHandler)(FCPopDisplayer_point *displayer);
+@end
+
 @implementation FCPopDisplayer_point{
     CGRect _popViewFrame;
     CGPoint _arrowPoint;
@@ -153,10 +159,15 @@
 {
     self = [super init];
     if (self) {
-        _arrowSize = CGSizeMake(10, 10);
+        _arrowSize = CGSizeMake(15, 10);
         _startScale = 0.3f;
     }
     return self;
+}
+
+-(void)squeezeByScreenWithSizeChangedHandler:(void (^)(FCPopDisplayer_point *))handler{
+    _squeezeByScreen = YES;
+    _squeezeHandler = handler;
 }
 
 //被屏幕遮挡后的可见程度
@@ -307,6 +318,7 @@
 }
 
 -(void)show{
+    [super show];
     if (![self canDisplay]) {
         return;
     }
@@ -317,7 +329,10 @@
     UIView *popView = self.popView;
     [keyWindow addSubview:popView];
     
-    CGPoint triggerCenter = [self.triggerView.superview convertPoint:self.triggerView.center toView:[UIApplication sharedApplication].keyWindow];
+    CGPoint triggerCenter = self.triggerPoint;
+    if (self.triggerView) {
+        triggerCenter = [self.triggerView.superview convertPoint:self.triggerView.center toView:[UIApplication sharedApplication].keyWindow];
+    }
     
     FCPopDisplayPosition effPosition;
     _popViewFrame = [self calculateDispFrameWithPosition:self.position effectivePosition:&effPosition];
@@ -327,6 +342,9 @@
     _arrowPoint = [self arrowPointForFrame:_popViewFrame point:triggerCenter position:effPosition];
 
     popView.frame = _popViewFrame;
+    if (_squeezeByScreen && _squeezeHandler) { //通知大小被压缩
+        _squeezeHandler(self);
+    }
     self.bgView.alpha = 0;
     float preAlpha = popView.alpha;
     
@@ -369,6 +387,7 @@
 }
 
 -(void)hide{
+    [super hide];
     UIView *popView = self.popView;
     float preAlpha = popView.alpha;
     
@@ -468,6 +487,7 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 }
 
 -(void)show{
+    [super show];
     if (![self canDisplay]) {
         return;
     }
@@ -493,6 +513,7 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 }
 
 -(void)hide{
+    [super hide];
     _showing = NO;
     
     [self.popView.layer addAnimation:self.hideAnim forKey:FCPopCenterHideAnimKey];
@@ -550,7 +571,8 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 }
 
 -(void)show{
-    
+    //用引用循环来避免自身被释放
+    self.popView.displayer = self;
 }
 
 -(void)hide{
@@ -582,6 +604,8 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
         [self.delegate popViewDidHide:self.popView];
     }
     
+    //解除引用循环
+    self.popView.displayer = nil;
     self.popView = nil;
 }
 

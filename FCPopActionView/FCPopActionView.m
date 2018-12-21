@@ -68,7 +68,7 @@
     
     self.topViewLine.hidden = _topView == nil;
     
-    [self setNeedsLayout];
+    [self layoutWithNorm:(FCPopLayoutNormSettedFrame)];
 }
 
 -(void)setBottomView:(UIView *)bottomView{
@@ -79,7 +79,7 @@
     
     self.contentViewLine.hidden = _bottomView == nil;
     
-    [self setNeedsLayout];
+    [self layoutWithNorm:(FCPopLayoutNormSettedFrame)];
 }
 
 -(void)setItems:(NSArray *)items{
@@ -131,7 +131,7 @@
         [_itemBoxs addObject:box];
     }
     
-    [self setNeedsLayout];
+    [self layoutWithNorm:(FCPopLayoutNormContent)];
 }
 
 -(FCPopItemController *)getControllerForItem:(id)item{
@@ -144,8 +144,33 @@
 -(void)layoutSubviews{
     [super layoutSubviews];
     
+    [self layoutWithNorm:(FCPopLayoutNormSettedFrame)];
+}
+
+-(void)layoutWithNorm:(FCPopLayoutNorm)norm{
+    
+    //先算内容的无限制高度
+    _contentView.frame = CGRectMake(0, 0, kFCPopContentWidth, 10);
+    [self layoutContentView];
+    
+    if (norm == FCPopLayoutNormSettedFrame) {
+        CGFloat needContentH = self.frame.size.height-_topSpace-_bottomSpace-_topView.frame.size.height-_bottomView.frame.size.height;
+        _scrollZoneMaxHeight = _scrollZone.frame.size.height+needContentH-_contentView.frame.size.height;
+        _scrollZoneMaxHeight = MAX(0, _scrollZoneMaxHeight);
+        
+        //压缩滚动区域大小，重新布局内容视图部分
+        [self layoutContentView];
+    }else{
+        
+        //根据内容改变大小
+        CGFloat totalHeight = _contentView.frame.size.height+_topSpace+_bottomSpace+_topView.frame.size.height+_bottomView.frame.size.height;
+        self.bounds = CGRectMake(0, 0, self.bounds.size.width, totalHeight);
+    }
+    
+    
     CGFloat currentY = _topSpace;
     
+    //顶部视图
     CGRect frame = _topView.frame;
     frame.origin.y = currentY;
     frame.origin.x = 0;
@@ -157,23 +182,22 @@
         self.topViewLine.frame = CGRectMake(0,frame.size.height-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
     }
     
-    _contentView.frame = CGRectMake(0, currentY, kFCPopContentWidth, 10);
-    [self layoutContentView];
+    //内容视图
+    frame = _contentView.frame;
+    frame.origin.y = currentY;
+    _contentView.frame = frame;
     currentY += _contentView.frame.size.height;
     
     if (_bottomView) {
         self.contentViewLine.frame = CGRectMake(0,CGRectGetMaxY(_contentView.frame)-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
     }
     
+    //底部视图
     frame = _bottomView.frame;
     frame.origin.x = 0;
-    frame.origin.y = currentY;
+    frame.origin.y = self.frame.size.height-_bottomSpace-_bottomView.frame.size.height;
     frame.size.width = kFCPopContentWidth;
     _bottomView.frame = frame;
-    currentY += frame.size.height;
-    
-    CGFloat totalHeight = currentY+_bottomSpace;
-    self.bounds = CGRectMake(0, 0, self.bounds.size.width, totalHeight);
 }
 
 -(void)layoutContentView{
@@ -239,7 +263,7 @@
     _showSeparateLine = showSeparateLine;
     
     if (!_scrollBottomLine) { //没生成过
-        [self setNeedsLayout];
+        [self layoutWithNorm:(FCPopLayoutNormSettedFrame)];
     }else{
         self.scrollBottomLine.hidden = !_showSeparateLine;
         
@@ -251,7 +275,7 @@
 
 -(void)setSeparateInsets:(UIEdgeInsets)separateInsets{
     _separateInsets = separateInsets;
-    [self setNeedsLayout];
+    [self layoutWithNorm:(FCPopLayoutNormSettedFrame)];
 }
 
 -(void)setSeparateColor:(UIColor *)separateColor{

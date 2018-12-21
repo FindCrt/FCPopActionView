@@ -20,13 +20,15 @@
 
 -(FCPopItemController *)getControllerForItem:(FCPopSimpleItem *)item{
     
+    NSAssert([item isKindOfClass:[FCPopSimpleItem class]], @"item必须为FCPopSimpleItem类型");
+    
     if (item.selectable) {
         FCPopCheckBoxController *controller = [[FCPopCheckBoxController alloc] initWithItem:item];
         controller.titleLabel.text = item.title;
         
         controller.normalIcon = item.icon;
-        controller.selectedIcon = item.selectedIcon;
-        controller.selectedIcon = item.selectedIcon;
+        controller.checkIcon = item.selectedIcon;
+        controller.checkColor = item.selectedColor;
         controller.normalIcon = item.icon;
         controller.normalColor = item.normalColor;
         

@@ -12,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface FCPopIconTextController : FCPopItemController
 
+@property (nonatomic, readonly) UIView *contentView;
+
 @property (nonatomic) UIImageView *iconView;
 
 @property (nonatomic) UILabel *titleLabel;

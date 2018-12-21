@@ -46,6 +46,17 @@
 
 @end
 
+/**
+ * 布局的准则；一般按内容布局，即该展开的展开该显示的显示，就是第1种方式；但考虑到太大被屏幕遮挡，需要压缩大小，这时是总大小根据屏幕确定，要跟随这个伸缩滚动区域大小，就是第2种方式。
+ * 一种由内像外布局，一种由外向内
+ */
+typedef NS_ENUM(NSInteger, FCPopLayoutNorm) {
+    ///依据内容布局，按内容展开，最后修改ActionView的大小
+    FCPopLayoutNormContent,
+    ///依据已设定frame来布局，ActionView的大小不变，逐层往内布局，最后通过伸缩滚动区域的大小来布局
+    FCPopLayoutNormSettedFrame,
+};
+
 
 /** 每一项的选择类型 */
 typedef NS_ENUM(NSInteger, FCPopSelectType) {

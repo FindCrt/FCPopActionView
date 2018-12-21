@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "FCPopActionViewDef.h"
+#import "UIView+FCPopDisplayer.h"
 
 /** 默认的一些常用显示弹框的方式 */
 typedef NS_ENUM(NSInteger, FCPopDisplayType) {
@@ -46,9 +47,7 @@ typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
 /** 弹框下的背景视图 */
 @property (nonatomic, readonly) UIView *bgView;
 
-/** 触发弹框的view */
-@property (nonatomic) UIView *triggerView;
-
+/** 子类需要调用super */
 -(void)show;
 -(void)hide;
 
@@ -69,25 +68,40 @@ typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
 
 @end
 
+
+
+
 typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
+    FCPopDisplayerAnimTypeScaleAndFade,
     FCPopDisplayerAnimTypeScale,
     FCPopDisplayerAnimTypeFade,
-    FCPopDisplayerAnimTypeScaleAndFade
 };
 
+/** 从一点或一个小区域触发弹窗，类似微信右上角“+”，Xcode的补全提示框等*/
 @interface FCPopDisplayer_point : FCPopDisplayer
 
 /** 是否显示箭头 */
 @property (nonatomic) BOOL showArrow;
-/** 箭头的大小,默认为(10, 10); 注意会受到弹框view的scale因素影响 */
+/** 箭头的大小,默认为(15, 10); 注意会受到弹框view的scale因素影响 */
 @property (nonatomic) CGSize arrowSize;
+
+
+/** 触发弹框的view */
+@property (nonatomic) UIView *triggerView;
+/** 触发点在window坐标系下的位置 */
+@property (nonatomic) CGPoint triggerPoint;
 
 /** 弹框是否重叠triggerView */
 @property (nonatomic) BOOL overlap;
-/** 如果超出屏幕，则缩小size挤压在屏幕内 */
-@property (nonatomic) BOOL squeezeByScreen;
-/** 边距，squeezeByScreen为YES时才有意义 */
+
+/**
+ 设置如果超出屏幕，则缩小size挤压在屏幕内
+ @param handler 大小被改变时的回调
+ */
+-(void)squeezeByScreenWithSizeChangedHandler:(void(^)(FCPopDisplayer_point *displayer))handler;
+/** 边距 */
 @property (nonatomic) UIEdgeInsets margins;
+
 
 /** 动画形式 */
 @property (nonatomic) FCPopDisplayerAnimType animationType;
@@ -95,6 +109,8 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 @property (nonatomic) float startScale;
 
 @end
+
+
 
 @interface FCPopDisplayer_center : FCPopDisplayer
 

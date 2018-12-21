@@ -15,6 +15,7 @@
 #import "FCPopTitleView.h"
 #import "UIView+Border.h"
 #import "FCPopSimpleView.h"
+#import "ExampleViewController.h"
 
 #define kScreenHeight ([UIScreen mainScreen].bounds.size.height)
 #define kScreenWidth ([UIScreen mainScreen].bounds.size.width)
@@ -82,6 +83,11 @@
     NSLog(@"hided");
 }
 
+- (IBAction)otherExamples:(id)sender {
+    ExampleViewController *examVC = [[ExampleViewController alloc] init];
+    [self.navigationController pushViewController:examVC animated:YES];
+}
+
 #pragma mark - 微信弹框样式
 
 -(void)setWeChatButton{
@@ -121,7 +127,7 @@
     dispPoint.showArrow = NO;
     dispPoint.overlap = NO;
     dispPoint.animationType = FCPopDisplayerAnimTypeScaleAndFade;
-    dispPoint.squeezeByScreen = YES;
+    [dispPoint squeezeByScreenWithSizeChangedHandler:nil];
     dispPoint.margins = UIEdgeInsetsMake(0, 0, 0, 20);
     dispPoint.startScale = 0.7;
     

@@ -8,9 +8,7 @@
 
 #import "FCPopIconTextController.h"
 
-@interface FCPopIconTextController (){
-    UIView *_contentView;
-}
+@interface FCPopIconTextController ()
 
 @end
 

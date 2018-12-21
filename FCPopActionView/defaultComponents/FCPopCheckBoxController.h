@@ -14,10 +14,13 @@ NS_ASSUME_NONNULL_BEGIN
 @interface FCPopCheckBoxController : FCPopIconTextController<FCPopItemSelectable>
 
 @property (nonatomic) UIImage *normalIcon;
-@property (nonatomic) UIImage *selectedIcon;
+@property (nonatomic) UIImage *checkIcon;
 
 @property (nonatomic) UIColor *normalColor;
-@property (nonatomic) UIColor *selectedColor;
+@property (nonatomic) UIColor *checkColor;
+
+@property (nonatomic) BOOL checkIconRight;
+@property (nonatomic) CGFloat rightSpace;
 
 @end
 
