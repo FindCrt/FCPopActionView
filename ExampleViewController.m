@@ -55,9 +55,25 @@
         item.title = [NSString stringWithFormat:@"%@(%ld)",groupName, memberCount];
         [items addObject:item];
     }
+    _popView1.title = @"选择分组";
     _popView1.items = items;
     _popView1.topSpace = 10;
     _popView1.scrollRange = NSMakeRange(0, items.count);
+    
+    //点击修改popView的内容
+    _popView1.clickBlock = ^(FCPopSimpleView * _Nonnull actionView, FCPopSimpleItem * _Nonnull item) {
+        
+        NSMutableArray *curItems = [actionView.items mutableCopy];
+        
+        FCPopSimpleItem *itemCopy = [[FCPopSimpleItem alloc] init];
+        itemCopy.title = [NSString stringWithFormat:@"复制 %@",item.title];
+        [curItems insertObject:itemCopy atIndex:0];
+        
+        actionView.items = curItems;
+        actionView.scrollRange = NSMakeRange(0, curItems.count);
+        
+        [actionView.displayer locatePopView];
+    };
 }
 
 -(void)showPopView1:(UIButton *)button{
@@ -66,15 +82,15 @@
     displayer.popView = _popView1;
     displayer.triggerView = button;
     displayer.showArrow = YES;
-    displayer.margins = UIEdgeInsetsMake(0, 0, 10, 4);
-    
+    displayer.margins = UIEdgeInsetsMake(0, 0, 40, 4);
+
     __weak typeof(self) weakSelf = self;
     [displayer squeezeByScreenWithSizeChangedHandler:^(FCPopDisplayer_point *displayer) {
         __strong typeof(self) strongSelf = weakSelf;
         //大小被改变，需要重新布局; 这种情况就需要第2种类型布局方式了，因为不能改变弹框大小
         [strongSelf->_popView1 layoutWithNorm:(FCPopLayoutNormSettedFrame)];
     }];
-    
+
     [displayer show];
 }
 

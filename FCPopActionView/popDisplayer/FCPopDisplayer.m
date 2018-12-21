@@ -42,16 +42,12 @@
         [self showCompleted];
     };
     
-    CGFloat gapSpace = self.gapSpace;
-    
     if (self.position == FCPopDisplayPositionBottom) {
         
         popView.frame = CGRectMake(kScreenWidth/2.0-popView.frame.size.width/2.0, kScreenHeight, popView.frame.size.width, popView.frame.size.height);
         
         [UIView animateWithDuration:self.duration animations:^{
-            CGRect frame = popView.frame;
-            frame.origin.y -= frame.size.height+gapSpace;
-            popView.frame = frame;
+            [self locatePopView];
             
             self.bgView.alpha = kBGViewAlpha;
         } completion:completion];
@@ -60,9 +56,7 @@
         popView.frame = CGRectMake(kScreenWidth/2.0-popView.frame.size.width/2.0, -popView.frame.size.height, popView.frame.size.width, popView.frame.size.height);
         
         [UIView animateWithDuration:self.duration animations:^{
-            CGRect frame = popView.frame;
-            frame.origin.y = gapSpace;
-            popView.frame = frame;
+            [self locatePopView];
             
             self.bgView.alpha = kBGViewAlpha;
         } completion:completion];
@@ -71,9 +65,7 @@
         popView.frame = CGRectMake(-popView.frame.size.width, kScreenHeight/2.0-popView.frame.size.height/2.0, popView.frame.size.width, popView.frame.size.height);
         
         [UIView animateWithDuration:self.duration animations:^{
-            CGRect frame = popView.frame;
-            frame.origin.x = gapSpace;
-            popView.frame = frame;
+            [self locatePopView];
             
             self.bgView.alpha = kBGViewAlpha;
         } completion:completion];
@@ -82,13 +74,32 @@
         popView.frame = CGRectMake(kScreenWidth, kScreenHeight/2.0-popView.frame.size.height/2.0, popView.frame.size.width, popView.frame.size.height);
         
         [UIView animateWithDuration:self.duration animations:^{
-            CGRect frame = popView.frame;
-            frame.origin.x -= frame.size.width+gapSpace;
-            popView.frame = frame;
+            [self locatePopView];
             
             self.bgView.alpha = kBGViewAlpha;
         } completion:completion];
     }
+}
+
+-(void)locatePopView{
+    
+    CGRect frame = self.popView.frame;
+    CGFloat gapSpace = self.gapSpace;
+    
+    if (self.position == FCPopDisplayPositionBottom) {
+        
+        frame = CGRectMake(kScreenWidth/2.0-frame.size.width/2.0, kScreenHeight-frame.size.height-gapSpace, frame.size.width, frame.size.height);
+        
+    }else if (self.position == FCPopDisplayPositionTop){
+        frame = CGRectMake(kScreenWidth/2.0-frame.size.width/2.0, gapSpace, frame.size.width, frame.size.height);
+        
+    }else if (self.position == FCPopDisplayPositionLeft){
+        frame = CGRectMake(gapSpace, kScreenHeight/2.0-frame.size.height/2.0, frame.size.width, frame.size.height);
+        
+    }else if (self.position == FCPopDisplayPositionRight){
+        frame = CGRectMake(kScreenWidth-frame.size.width-gapSpace, kScreenHeight/2.0-frame.size.height/2.0, frame.size.width, frame.size.height);
+    }
+    self.popView.frame = frame;
 }
 
 -(void)hide{
@@ -329,22 +340,8 @@
     UIView *popView = self.popView;
     [keyWindow addSubview:popView];
     
-    CGPoint triggerCenter = self.triggerPoint;
-    if (self.triggerView) {
-        triggerCenter = [self.triggerView.superview convertPoint:self.triggerView.center toView:[UIApplication sharedApplication].keyWindow];
-    }
+    [self locatePopView];
     
-    FCPopDisplayPosition effPosition;
-    _popViewFrame = [self calculateDispFrameWithPosition:self.position effectivePosition:&effPosition];
-    if (_squeezeByScreen) {
-        _popViewFrame = [self squeezeFrame:_popViewFrame];
-    }
-    _arrowPoint = [self arrowPointForFrame:_popViewFrame point:triggerCenter position:effPosition];
-
-    popView.frame = _popViewFrame;
-    if (_squeezeByScreen && _squeezeHandler) { //通知大小被压缩
-        _squeezeHandler(self);
-    }
     self.bgView.alpha = 0;
     float preAlpha = popView.alpha;
     
@@ -383,6 +380,26 @@
         } completion:^(BOOL finished) {
             [self showCompleted];
         }];
+    }
+}
+
+-(void)locatePopView{
+    CGPoint triggerCenter = self.triggerPoint;
+    if (self.triggerView) {
+        triggerCenter = [self.triggerView.superview convertPoint:self.triggerView.center toView:[UIApplication sharedApplication].keyWindow];
+    }
+    
+    FCPopDisplayPosition effPosition;
+    _popViewFrame = [self calculateDispFrameWithPosition:self.position effectivePosition:&effPosition];
+    CGSize preSize = _popViewFrame.size;
+    if (_squeezeByScreen) {
+        _popViewFrame = [self squeezeFrame:_popViewFrame];
+    }
+    _arrowPoint = [self arrowPointForFrame:_popViewFrame point:triggerCenter position:effPosition];
+    
+    self.popView.frame = _popViewFrame;
+    if (_squeezeByScreen && _squeezeHandler && !CGSizeEqualToSize(preSize, _popViewFrame.size)) { //通知大小被压缩
+        _squeezeHandler(self);
     }
 }
 
@@ -591,6 +608,10 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
     }
     
     return YES;
+}
+
+-(void)locatePopView{
+    
 }
 
 -(void)showCompleted{

@@ -47,14 +47,20 @@ typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
 /** 弹框下的背景视图 */
 @property (nonatomic, readonly) UIView *bgView;
 
+/** 弹框视图 */
+@property (nonatomic) UIView *popView;
+/** 委托对象 */
+@property (nonatomic) id<FCPopDisplayDelegate> delegate;
+
 /** 子类需要调用super */
 -(void)show;
 -(void)hide;
 
+/** 是否可显示 */
 -(BOOL)canDisplay;
 
-@property (nonatomic) UIView *popView;
-@property (nonatomic) id<FCPopDisplayDelegate> delegate;
+/** 定位弹框显示时的位置和大小，弹框大小变化后可能需要调用 */
+-(void)locatePopView;
 
 @end
 

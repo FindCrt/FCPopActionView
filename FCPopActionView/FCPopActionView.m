@@ -151,15 +151,17 @@
     
     //先算内容的无限制高度
     _contentView.frame = CGRectMake(0, 0, kFCPopContentWidth, 10);
-    [self layoutContentView];
+    [self layoutContentViewWithScrollHeight:_scrollZoneMaxHeight];
     
     if (norm == FCPopLayoutNormSettedFrame) {
         CGFloat needContentH = self.frame.size.height-_topSpace-_bottomSpace-_topView.frame.size.height-_bottomView.frame.size.height;
-        _scrollZoneMaxHeight = _scrollZone.frame.size.height+needContentH-_contentView.frame.size.height;
-        _scrollZoneMaxHeight = MAX(0, _scrollZoneMaxHeight);
+        CGFloat scrollHeight = _scrollZone.frame.size.height+needContentH-_contentView.frame.size.height;
+        scrollHeight = MAX(0, scrollHeight);
         
         //压缩滚动区域大小，重新布局内容视图部分
-        [self layoutContentView];
+        if (scrollHeight != _scrollZone.frame.size.height) {
+            [self layoutContentViewWithScrollHeight:scrollHeight];
+        }
     }else{
         
         //根据内容改变大小
@@ -200,7 +202,8 @@
     _bottomView.frame = frame;
 }
 
--(void)layoutContentView{
+///根据滚动高度限制，调整内容视图布局
+-(void)layoutContentViewWithScrollHeight:(CGFloat)scrollHeight{
     CGFloat width = _contentView.frame.size.width;
     
     NSInteger scrollStart = _scrollRange.location;
@@ -235,7 +238,7 @@
         
         //从内层跳回外层，内层的高度叠加到外层
         if (i == scrollEnd) {
-            curY1 += MIN(curY2, self.scrollZoneMaxHeight);
+            curY1 += MIN(curY2, scrollHeight);
             
             self.scrollBottomLine.hidden = scrollEnd>=scrollStart;
             self.scrollBottomLine.frame = CGRectMake(_separateInsets.left, curY1-kFCPopLineWidth, frame.size.width-_separateInsets.left-_separateInsets.right, kFCPopLineWidth);
@@ -248,7 +251,7 @@
     frame.size.height = curY1;
     _contentView.frame = frame;
     
-    _scrollZone.frame = CGRectMake(0, innerStart, width, MIN(curY2, self.scrollZoneMaxHeight));
+    _scrollZone.frame = CGRectMake(0, innerStart, width, MIN(curY2, scrollHeight));
     _scrollZone.contentSize = CGSizeMake(width, curY2);
 }
 
