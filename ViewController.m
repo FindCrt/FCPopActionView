@@ -91,7 +91,7 @@
 #pragma mark - 微信弹框样式
 
 -(void)setWeChatButton{
-    _weChatButton = [[UIButton alloc] initWithFrame:CGRectMake(kScreenWidth-64, 20, 60, 44)];
+    _weChatButton = [[UIButton alloc] initWithFrame:CGRectMake(kScreenWidth-64, 80, 60, 44)];
     [_weChatButton setTitle:@"微信+" forState:(UIControlStateNormal)];
     _weChatButton.backgroundColor = [UIColor colorWithWhite:0.15 alpha:1];
     [_weChatButton addTarget:self action:@selector(showWeChatPopView:) forControlEvents:(UIControlEventTouchUpInside)];
@@ -137,7 +137,7 @@
 #pragma mark - 小米底部弹框样式
 
 -(void)setMiButton{
-    _miButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 80, kScreenWidth-20, 40)];
+    _miButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 130, kScreenWidth-20, 40)];
     [_miButton setTitle:@"小米 上网卡" forState:(UIControlStateNormal)];
     [_miButton setTitleColor:[UIColor colorWithWhite:0.2 alpha:1] forState:(UIControlStateNormal)];
     _miButton.backgroundColor = [UIColor colorWithWhite:0.98 alpha:1];
@@ -186,7 +186,7 @@
 #pragma mark - QQ弹框样式
 
 -(void)setQQButton{
-    _qqButton = [[UIButton alloc] initWithFrame:CGRectMake(kScreenWidth-64, 140, 60, 44)];
+    _qqButton = [[UIButton alloc] initWithFrame:CGRectMake(kScreenWidth-64, 180, 60, 44)];
     [_qqButton setTitle:@"QQ+" forState:(UIControlStateNormal)];
     _qqButton.backgroundColor = [UIColor colorWithRed:38.0f/255 green:166.0f/255 blue:255.0f/255 alpha:1];
     [_qqButton addTarget:self action:@selector(showQQPopView:) forControlEvents:(UIControlEventTouchUpInside)];
@@ -232,7 +232,7 @@
 #pragma mark - 网易云弹框样式
 
 -(void)setWyButton{
-    _wyButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 140, 100, 44)];
+    _wyButton = [[UIButton alloc] initWithFrame:CGRectMake(10, 180, 100, 44)];
     [_wyButton setTitle:@"网易云音乐" forState:(UIControlStateNormal)];
     [_wyButton setTitleColor:[UIColor whiteColor] forState:(UIControlStateNormal)];
     _wyButton.backgroundColor = [UIColor colorWithWhite:0.3 alpha:1];
@@ -293,7 +293,7 @@
 #pragma mark - 子类FCPopSimpleView构建网易云弹框样式
 
 -(void)setWyButton2{
-    _wyButton2 = [[UIButton alloc] initWithFrame:CGRectMake(120, 140, 140, 44)];
+    _wyButton2 = [[UIButton alloc] initWithFrame:CGRectMake(120, 180, 140, 44)];
     [_wyButton2 setTitle:@"网易云音乐 2号" forState:(UIControlStateNormal)];
     [_wyButton2 setTitleColor:[UIColor whiteColor] forState:(UIControlStateNormal)];
     _wyButton2.backgroundColor = [UIColor colorWithWhite:0.3 alpha:1];

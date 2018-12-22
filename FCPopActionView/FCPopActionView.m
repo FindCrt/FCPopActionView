@@ -181,7 +181,7 @@
     currentY += frame.size.height;
     
     if (_topView) {
-        self.topViewLine.frame = CGRectMake(0,frame.size.height-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
+        self.topViewLine.frame = CGRectMake(0,currentY-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
     }
     
     //内容视图
@@ -191,7 +191,7 @@
     currentY += _contentView.frame.size.height;
     
     if (_bottomView) {
-        self.contentViewLine.frame = CGRectMake(0,CGRectGetMaxY(_contentView.frame)-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
+        self.contentViewLine.frame = CGRectMake(0,currentY-kFCPopLineWidth, kFCPopContentWidth, kFCPopLineWidth);
     }
     
     //底部视图

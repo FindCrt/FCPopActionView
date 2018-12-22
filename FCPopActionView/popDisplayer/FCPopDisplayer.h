@@ -76,14 +76,23 @@ typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
 
 
 
-
 typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
+    ///缩放+淡化
     FCPopDisplayerAnimTypeScaleAndFade,
+    ///缩放
     FCPopDisplayerAnimTypeScale,
+    ///淡化
     FCPopDisplayerAnimTypeFade,
 };
 
 /** 从一点或一个小区域触发弹窗，类似微信右上角“+”，Xcode的补全提示框等*/
+//默认时箭头是刚好顶到triggerView边框的，修改arrowTriggerSpace调节箭头和触发框的距离
+/*
+ *    ＿＿＿＿↓＿＿＿＿
+ *  →| triggerView  |←  4种箭头位置
+ *    ￣￣￣￣↑￣￣￣￣
+ */
+
 @interface FCPopDisplayer_point : FCPopDisplayer
 
 /** 是否显示箭头 */
@@ -91,27 +100,27 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 /** 箭头的大小,默认为(15, 10); 注意会受到弹框view的scale因素影响 */
 @property (nonatomic) CGSize arrowSize;
 
-
-/** 触发弹框的view */
+/** 触发弹框的view，作用等价与把triggerView的center作为triggerPoint */
 @property (nonatomic) UIView *triggerView;
-/** 触发点在window坐标系下的位置 */
-@property (nonatomic) CGPoint triggerPoint;
+/** 箭头和触发视图之间的距离 */
+@property (nonatomic) CGFloat arrowTriggerSpace;
 
 /** 弹框是否重叠triggerView */
 @property (nonatomic) BOOL overlap;
+
 
 /**
  设置如果超出屏幕，则缩小size挤压在屏幕内
  @param handler 大小被改变时的回调
  */
 -(void)squeezeByScreenWithSizeChangedHandler:(void(^)(FCPopDisplayer_point *displayer))handler;
-/** 边距 */
+/** 弹框和屏幕边距 */
 @property (nonatomic) UIEdgeInsets margins;
 
 
 /** 动画形式 */
 @property (nonatomic) FCPopDisplayerAnimType animationType;
-/** 缩放动画的其实缩放程度，默认0.3 */
+/** 缩放动画的起始缩放程度，默认0.3 */
 @property (nonatomic) float startScale;
 
 @end

@@ -14,7 +14,6 @@
 #define kScreenWidth ([UIScreen mainScreen].bounds.size.width)
 
 @interface ExampleViewController (){
-    UIButton *_button1;
     FCPopSimpleView *_popView1;
     FCPopDisplayer *_displayer;
 }
@@ -29,17 +28,33 @@
     
     //例子1： 右上角弹框，模拟从多个群组中选择一个的这种需求。
     //特点是：1. 多项内容，会充满屏幕，需要滚动支持 2. 压缩在屏幕范围内 3.单项选择
-    [self setButton1];
+    [self setButtons];
     [self setPopView1];
 }
 
--(void)setButton1{
-    _button1 = [[UIButton alloc] initWithFrame:CGRectMake(kScreenWidth-64, 0, 60, 40)];
-    [_button1 addTarget:self action:@selector(showPopView1:) forControlEvents:(UIControlEventTouchUpInside)];
-    [_button1 setTitle:@"选择" forState:(UIControlStateNormal)];
-    [_button1 setTitleColor:[UIColor colorWithRed:0.3 green:0.5 blue:0.8 alpha:1] forState:(UIControlStateNormal)];
+-(void)setButtons{
     
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:_button1];
+    CGPoint points[] = {
+        {10, 80},
+        {10, 300},
+        {10, 600},
+        {150, 80},
+        {150, 300},
+        {150, 550},
+        {kScreenWidth-70, 80},
+        {kScreenWidth-70, 300},
+        {kScreenWidth-70, 500},
+    };
+    
+    for (int i = 0; i<sizeof(points)/sizeof(CGPoint); i++) {
+        UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(points[i].x, points[i].y, 60, 40)];
+        [button addTarget:self action:@selector(showPopView1:) forControlEvents:(UIControlEventTouchUpInside)];
+        [button setTitle:[NSString stringWithFormat:@"%d",i] forState:(UIControlStateNormal)];
+        [button setTitleColor:[UIColor colorWithRed:0.3 green:0.5 blue:0.8 alpha:1] forState:(UIControlStateNormal)];
+        button.backgroundColor = [UIColor colorWithRed:0.8 green:0.6 blue:0.5 alpha:1];
+        
+        [self.view addSubview:button];
+    }
 }
 
 -(void)setPopView1{
@@ -57,10 +72,9 @@
     }
     _popView1.title = @"选择分组";
     _popView1.items = items;
-    _popView1.topSpace = 10;
     _popView1.scrollRange = NSMakeRange(0, items.count);
     
-    //点击修改popView的内容
+    //点击修改popView的内容,1、内容更新 2、布局调整
     _popView1.clickBlock = ^(FCPopSimpleView * _Nonnull actionView, FCPopSimpleItem * _Nonnull item) {
         
         NSMutableArray *curItems = [actionView.items mutableCopy];
@@ -78,11 +92,15 @@
 
 -(void)showPopView1:(UIButton *)button{
     FCPopDisplayer_point *displayer = [[FCPopDisplayer_point alloc] init];
-    displayer.position = FCPopDisplayPositionBottom;
+    displayer.position = FCPopDisplayPositionAuto;
     displayer.popView = _popView1;
-    displayer.triggerView = button;
     displayer.showArrow = YES;
-    displayer.margins = UIEdgeInsetsMake(0, 0, 40, 4);
+    //注意：边距太大，会把弹框挤得脱离按钮，会很奇怪
+    displayer.margins = UIEdgeInsetsMake(10, 10, 70, 10);
+    displayer.triggerView = button;
+    
+    displayer.arrowTriggerSpace = -10;
+
 
     __weak typeof(self) weakSelf = self;
     [displayer squeezeByScreenWithSizeChangedHandler:^(FCPopDisplayer_point *displayer) {
