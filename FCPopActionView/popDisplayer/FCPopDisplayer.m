@@ -170,11 +170,11 @@
 @end
 
 @implementation FCPopDisplayer_point{
-    CGRect _popViewFrame;
+    CGRect _displayFrame;
     CGPoint _arrowPoint;
     CGPoint _preAnchor;
     
-//    UIView *_borderView;
+    UIView *_borderView;
 }
 
 +(void)showPopView:(UIView *)popView triggerView:(UIView *)triggerView{
@@ -271,9 +271,10 @@
     CGFloat marginBottom = kScreenHeight-_margins.bottom;
     
     //给箭头腾出空间
+    CGFloat arrowHeight = _showArrow?_arrowSize.height:0;
     CGFloat arrowSpace = _arrowTriggerSpace;
     
-    CGRect frame = self.popView.frame;
+    CGRect frame = _borderView.frame;
     CGRect triggerFrame = self.triggerFrame;
     
     if (position == FCPopDisplayPositionBottom) {
@@ -285,6 +286,9 @@
         
         frame.origin.y = (self.overlap?CGRectGetMinY(triggerFrame):CGRectGetMaxY(triggerFrame))+arrowSpace;
         
+        //高度增加一点，把箭头本身的空间让出来
+        frame.size.height += arrowHeight;
+        
     }else if (position == FCPopDisplayPositionTop){
         
         //先让弹框和触发view竖直中心线重合，如果超出屏幕，在左右移动调整
@@ -294,6 +298,7 @@
         frame.origin.x = MIN(marginRight-frame.size.width, frame.origin.x);
         
         frame.origin.y = (self.overlap?CGRectGetMaxY(triggerFrame):CGRectGetMinY(triggerFrame))-frame.size.height-arrowSpace;
+        frame.size.height += arrowHeight;
         
     }else if (position == FCPopDisplayPositionLeft){
         frame.origin.x = (self.overlap?CGRectGetMaxX(triggerFrame):CGRectGetMinX(triggerFrame))-frame.size.width-arrowSpace;
@@ -301,6 +306,7 @@
         frame.origin.y = CGRectGetMidY(triggerFrame)-frame.size.height/2.0;
         frame.origin.y = MAX(marginTop, frame.origin.y);
         frame.origin.y = MIN(marginBottom-frame.size.height, frame.origin.y);
+        frame.size.width += arrowHeight;
         
     }else if (position == FCPopDisplayPositionRight){
         frame.origin.x = (self.overlap?CGRectGetMinX(triggerFrame):CGRectGetMaxX(triggerFrame))+arrowSpace;
@@ -308,6 +314,7 @@
         frame.origin.y = CGRectGetMidY(triggerFrame)-frame.size.height/2.0;
         frame.origin.y = MAX(marginTop, frame.origin.y);
         frame.origin.y = MIN(marginBottom-frame.size.height, frame.origin.y);
+        frame.size.width += arrowHeight;
         
     }else if (position == FCPopDisplayPositionAuto){
         
@@ -342,38 +349,73 @@
     return frame;
 }
 
--(void)addArrowBorderForView:(UIView *)view at:(CGPoint)arrowPoint{
-    FCBorderPosition position = FCBorderPositionTop;
-    CGFloat offset = 0;
-    CGRect frame = view.frame;
+///根据箭头的位置：1. 添加箭头 2.设置popView的位置
+-(void)addArrowBorderWithPosition:(FCPopDisplayPosition)position{
     
-    if (arrowPoint.x == 0) {
-        position = FCBorderPositionLeft;
-        offset = arrowPoint.y;
+    FCBorderPosition arrowPosition = FCBorderPositionTop;
+    CGFloat offset = 0;
+    CGRect popviewFrame = _borderView.bounds;
+    CGFloat arrowHeight = _showArrow?_arrowSize.height:0;
+    
+    if (position == FCPopDisplayPositionRight) {
+        arrowPosition = FCBorderPositionLeft;
+        offset = _arrowPoint.y;
+        
+        popviewFrame.origin.x += arrowHeight;
+        popviewFrame.size.width -= arrowHeight;
+    }else if (position == FCPopDisplayPositionLeft){
+        arrowPosition = FCBorderPositionRight;
+        offset = _arrowPoint.y;
 
-    }else if (arrowPoint.x == frame.size.width){
-        position = FCBorderPositionRight;
-        offset = arrowPoint.y;
+        popviewFrame.size.width -= arrowHeight;
+    }else if (position == FCPopDisplayPositionBottom){
+        arrowPosition = FCBorderPositionTop;
+        offset = _arrowPoint.x;
 
-    }else if (arrowPoint.y == 0){
-        position = FCBorderPositionTop;
-        offset = arrowPoint.x;
+        popviewFrame.origin.y += arrowHeight;
+        popviewFrame.size.height -= arrowHeight;
+    }else if (position == FCPopDisplayPositionTop){
+        arrowPosition = FCBorderPositionBottom;
+        offset = _arrowPoint.x;
 
-    }else if (arrowPoint.y == frame.size.height){
-        position = FCBorderPositionBottom;
-        offset = arrowPoint.x;
-
+        popviewFrame.size.height -= arrowHeight;
     }
     
-    [view addArrowBorderAt:position offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:view.layer.cornerRadius];
+    if (_showArrow) {
+        [_borderView addArrowBorderAt:arrowPosition offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:self.popView.layer.cornerRadius];
+    }
+    
+    CGSize preSize = self.popView.frame.size;
+    self.popView.frame = popviewFrame;
+    if (_squeezeByScreen && _squeezeHandler && !CGSizeEqualToSize(preSize, popviewFrame.size)) { //通知大小被压缩
+        _squeezeHandler(self);
+    }
+}
+
+-(void)locatePopView{
+    CGRect triggerFrame = self.triggerFrame;
+    CGPoint triggerCenter = CGPointMake(triggerFrame.origin.x+triggerFrame.size.width/2.0, triggerFrame.origin.y+triggerFrame.size.height/2.0);
+    
+    _borderView.frame = self.popView.frame;
+    
+    FCPopDisplayPosition effPosition;
+    _displayFrame = [self calculateDispFrameWithPosition:self.position effectivePosition:&effPosition];
+    if (_squeezeByScreen) {
+        _displayFrame = [self squeezeFrame:_displayFrame];
+    }
+    _arrowPoint = [self arrowPointForFrame:_displayFrame point:triggerCenter position:effPosition];
+    
+    _borderView.frame = _displayFrame;
+    
+    [self addArrowBorderWithPosition:effPosition];
 }
 
 //修改锚点是为了scale动画可以从某点逐渐放大，而不是默认的从中心放大
 -(void)changeAnchorPoint{
-    _preAnchor = self.popView.layer.anchorPoint;
-    self.popView.layer.anchorPoint = CGPointMake(_arrowPoint.x/_popViewFrame.size.width, _arrowPoint.y/_popViewFrame.size.height);
+    _preAnchor = _borderView.layer.anchorPoint;
+    _borderView.layer.anchorPoint = CGPointMake(_arrowPoint.x/_displayFrame.size.width, _arrowPoint.y/_displayFrame.size.height);
     
-    self.popView.frame = _popViewFrame;
+    _borderView.frame = _displayFrame;
 }
 
 -(void)show{
@@ -385,28 +427,30 @@
     UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
     [keyWindow addSubview:self.bgView];
     
-    UIView *popView = self.popView;
-    [keyWindow addSubview:popView];
+    //因为箭头用mask实现，会切掉一部分内容，所以使用一个_borderView，它把真的popView包起来，箭头加到_borderView上，这样原本的popView就是完整的了
+    _borderView = [[UIView alloc] init];
+    _borderView.backgroundColor = self.popView.backgroundColor;
+    [keyWindow addSubview:_borderView];
+    [_borderView addSubview:self.popView];
     
     [self locatePopView];
     
     self.bgView.alpha = 0;
-    float preAlpha = popView.alpha;
+    UIView *displayView = _borderView;
     
     if (_animationType == FCPopDisplayerAnimTypeScale ||
         _animationType == FCPopDisplayerAnimTypeScaleAndFade) {
         
-        CGAffineTransform preTransform = popView.transform;
         [self changeAnchorPoint];
         
-        popView.transform = CGAffineTransformScale(popView.transform, _startScale, _startScale);
+        displayView.transform = CGAffineTransformMakeScale(_startScale, _startScale);
         
-        if (_animationType == FCPopDisplayerAnimTypeScaleAndFade) popView.alpha = 0;
+        if (_animationType == FCPopDisplayerAnimTypeScaleAndFade) displayView.alpha = 0;
         
         [UIView animateWithDuration:self.duration animations:^{
             
-            popView.alpha = preAlpha;
-            popView.transform = preTransform;
+            displayView.alpha = 1;
+            displayView.transform = CGAffineTransformIdentity;
             self.bgView.alpha = kBGViewAlpha;
             
         } completion:^(BOOL finished) {
@@ -415,10 +459,10 @@
         
     }else if (_animationType == FCPopDisplayerAnimTypeFade){
         
-        popView.alpha = 0;
+        displayView.alpha = 0;
         [UIView animateWithDuration:self.duration animations:^{
             
-            popView.alpha = preAlpha;
+            displayView.alpha = 1;
             self.bgView.alpha = kBGViewAlpha;
             
         } completion:^(BOOL finished) {
@@ -427,51 +471,28 @@
     }
 }
 
--(void)locatePopView{
-    CGRect triggerFrame = self.triggerFrame;
-    CGPoint triggerCenter = CGPointMake(triggerFrame.origin.x+triggerFrame.size.width/2.0, triggerFrame.origin.y+triggerFrame.size.height/2.0);
-    
-    FCPopDisplayPosition effPosition;
-    _popViewFrame = [self calculateDispFrameWithPosition:self.position effectivePosition:&effPosition];
-    CGSize preSize = _popViewFrame.size;
-    if (_squeezeByScreen) {
-        _popViewFrame = [self squeezeFrame:_popViewFrame];
-    }
-    _arrowPoint = [self arrowPointForFrame:_popViewFrame point:triggerCenter position:effPosition];
-    
-    self.popView.frame = _popViewFrame;
-    if (_squeezeByScreen && _squeezeHandler && !CGSizeEqualToSize(preSize, _popViewFrame.size)) { //通知大小被压缩
-        _squeezeHandler(self);
-    }
-    
-    if (_showArrow && !_overlap) {
-        [self addArrowBorderForView:self.popView at:_arrowPoint];
-    }
-}
-
 -(void)hide{
     [super hide];
-    UIView *popView = self.popView;
-    float preAlpha = popView.alpha;
+    
+    UIView *displayView = _borderView;
     
     if (_animationType == FCPopDisplayerAnimTypeScale ||
         _animationType == FCPopDisplayerAnimTypeScaleAndFade) {
-        CGAffineTransform preTransform = popView.transform;
-
         
         BOOL fadeEffect = _animationType == FCPopDisplayerAnimTypeScaleAndFade;
         [UIView animateWithDuration:self.duration animations:^{
             
-            if (fadeEffect) popView.alpha = 0;
-            popView.transform = CGAffineTransformScale(popView.transform, self->_startScale, self->_startScale);
+            if (fadeEffect) displayView.alpha = 0;
+            displayView.transform = CGAffineTransformMakeScale(self->_startScale, self->_startScale);
             self.bgView.alpha = 0;
             
         } completion:^(BOOL finished) {
+            [displayView removeFromSuperview];
             [self.bgView removeFromSuperview];
             [self.popView removeFromSuperview];
             
-            popView.alpha = preAlpha;
-            popView.transform = preTransform;
+            displayView.alpha = 1;
+            displayView.transform = CGAffineTransformIdentity;
             
             [self hideCompleted];
         }];
@@ -480,14 +501,15 @@
         
         [UIView animateWithDuration:self.duration animations:^{
             
-            popView.alpha = 0;
+            displayView.alpha = 0;
             self.bgView.alpha = 0;
             
         } completion:^(BOOL finished) {
             
+            [displayView removeFromSuperview];
             [self.bgView removeFromSuperview];
             [self.popView removeFromSuperview];
-            popView.alpha = preAlpha;
+            displayView.alpha = 1;
             
             [self hideCompleted];
             

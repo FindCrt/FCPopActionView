@@ -88,7 +88,6 @@
     FCPopSimpleView *menu = [[FCPopSimpleView alloc] initWithFrame:CGRectMake(0, 0, 150, 10)];
     menu.items = [FCPopSimpleItem activeItemWithIcons:nil titles:@[@"点弹框各种位置",@"中间弹框"]];
     menu.rowHeight = 60;
-    menu.topSpace = 10; //留给箭头的空间
     menu.cornerRadius = 4;
     menu.clickBlock = ^(FCPopSimpleView * _Nonnull actionView, FCPopSimpleItem * _Nonnull item) {
         
@@ -223,7 +222,6 @@
                        ];
     _qqPopView.items = items;
     _qqPopView.delegate = self;
-    _qqPopView.topSpace = 10;  //给箭头留出的空间
     _qqPopView.separateColor = [UIColor colorWithWhite:0.9 alpha:1];
     _qqPopView.cornerRadius = 5;
     _qqPopView.showSeparateLine = NO;
