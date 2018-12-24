@@ -60,6 +60,12 @@
     return self;
 }
 
+-(void)willMoveToSuperview:(UIView *)newSuperview{
+    [super willMoveToSuperview:newSuperview];
+    
+    [self layoutWithNorm:(FCPopLayoutNormContent)];
+}
+
 -(void)setTopView:(UIView *)topView{
     [_topView removeFromSuperview];
     

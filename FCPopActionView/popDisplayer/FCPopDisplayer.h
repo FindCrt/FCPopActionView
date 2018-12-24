@@ -10,34 +10,24 @@
 #import "FCPopActionViewDef.h"
 #import "UIView+FCPopDisplayer.h"
 
-/** 默认的一些常用显示弹框的方式 */
-typedef NS_ENUM(NSInteger, FCPopDisplayType) {
-    ///从屏幕的边缘进来，如系统的actionSheet样式
-    FCPopDisplayTypeScreenEdge,
-    ///从某个点弹出，如微信右上角加号"+"弹框
-    FCPopDisplayTypePoint,
-    ///显示在屏幕中间，如系统的alertView样式
-    FCPopDisplayTypeCenter,
-};
-
 /** 显示弹框的位置，配合显示类型使用 */
 typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
-    ///自动计算
-    FCPopDisplayPositionAuto,
+    ///底部
+    FCPopDisplayPositionBottom,
     ///顶部
     FCPopDisplayPositionTop,
     ///左侧
     FCPopDisplayPositionLeft,
-    ///底部
-    FCPopDisplayPositionBottom,
     ///右侧
     FCPopDisplayPositionRight,
+    ///自动计算
+    FCPopDisplayPositionAuto,
 };
 
 @interface FCPopDisplayer : NSObject
 
-/** 构建默认类型的工厂方法 */
-+(instancetype)displayerWithType:(FCPopDisplayType)type position:(FCPopDisplayPosition)position;
+-(instancetype)initWithPopView:(UIView *)popView;
+-(instancetype)initWithPopView:(UIView *)popView position:(FCPopDisplayPosition)positiom;
 
 @property (nonatomic) FCPopDisplayPosition position;
 
@@ -66,6 +56,7 @@ typedef NS_ENUM(NSInteger, FCPopDisplayPosition) {
 
 
 #pragma mark - 默认子类
+/** 从屏幕的边缘进来，如系统的actionSheet样式 */
 
 @interface FCPopDisplayer_screenEdge : FCPopDisplayer
 
@@ -95,6 +86,9 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 
 @interface FCPopDisplayer_point : FCPopDisplayer
 
++(void)showPopView:(UIView *)popView triggerView:(UIView *)triggerView;
++(void)showPopView:(UIView *)popView triggerFrame:(CGRect)triggerFrame;
+
 /** 是否显示箭头 */
 @property (nonatomic) BOOL showArrow;
 /** 箭头的大小,默认为(15, 10); 注意会受到弹框view的scale因素影响 */
@@ -102,6 +96,8 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 
 /** 触发弹框的view，作用等价与把triggerView的center作为triggerPoint */
 @property (nonatomic) UIView *triggerView;
+/** 触发框的frame，真正影响弹框位置的是这个 */
+@property (nonatomic) CGRect triggerFrame;
 /** 箭头和触发视图之间的距离 */
 @property (nonatomic) CGFloat arrowTriggerSpace;
 
@@ -126,6 +122,7 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 @end
 
 
+/** 显示在屏幕中间，如系统的alertView样式 */
 
 @interface FCPopDisplayer_center : FCPopDisplayer
 

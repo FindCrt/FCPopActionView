@@ -25,6 +25,14 @@
 
 @implementation FCPopDisplayer_screenEdge
 
+-(void)setPosition:(FCPopDisplayPosition)position{
+    if (position == FCPopDisplayPositionAuto) {
+        position = FCPopDisplayPositionBottom;
+    }
+    
+    super.position = position;
+}
+
 -(void)show{
     [super show];
     if (![self canDisplay]) {
@@ -166,13 +174,26 @@
     CGPoint _arrowPoint;
     CGPoint _preAnchor;
     
-    UIView *_borderView;
+//    UIView *_borderView;
+}
+
++(void)showPopView:(UIView *)popView triggerView:(UIView *)triggerView{
+    FCPopDisplayer_point *disp = [[FCPopDisplayer_point alloc] initWithPopView:popView position:(FCPopDisplayPositionAuto)];
+    disp.triggerView = triggerView;
+    [disp show];
+}
+
++(void)showPopView:(UIView *)popView triggerFrame:(CGRect)triggerFrame{
+    FCPopDisplayer_point *disp = [[FCPopDisplayer_point alloc] initWithPopView:popView position:(FCPopDisplayPositionAuto)];
+    disp.triggerFrame = triggerFrame;
+    [disp show];
 }
 
 - (instancetype)init
 {
     self = [super init];
     if (self) {
+        _showArrow = YES;
         _arrowSize = CGSizeMake(15, 10);
         _startScale = 0.3f;
     }
@@ -232,6 +253,14 @@
     return arrowPoint;
 }
 
+-(CGRect)triggerFrame{
+    if (CGRectEqualToRect(_triggerFrame, CGRectZero)) {
+        return [self.triggerView convertRect:self.triggerView.bounds toView:[UIApplication sharedApplication].keyWindow];
+    }
+    
+    return _triggerFrame;
+}
+
 -(CGRect)calculateDispFrameWithPosition:(FCPopDisplayPosition)position effectivePosition:(FCPopDisplayPosition *)effPosition{
     
     *effPosition = position;
@@ -242,11 +271,10 @@
     CGFloat marginBottom = kScreenHeight-_margins.bottom;
     
     //给箭头腾出空间
-    CGFloat arrowSpace = (_showArrow?_arrowSize.height:0)+_arrowTriggerSpace;
+    CGFloat arrowSpace = _arrowTriggerSpace;
     
     CGRect frame = self.popView.frame;
-    //转到window坐标系, self.triggerView为空，则定位到坐标原点
-    CGRect triggerFrame = [self.triggerView convertRect:self.triggerView.bounds toView:[UIApplication sharedApplication].keyWindow];
+    CGRect triggerFrame = self.triggerFrame;
     
     if (position == FCPopDisplayPositionBottom) {
         //先让弹框和触发view竖直中心线重合，如果超出屏幕，在左右移动调整
@@ -319,42 +347,25 @@
     CGFloat offset = 0;
     CGRect frame = view.frame;
     
-    //箭头边框加到另一个view上，再把这个view加到弹框上，箭头边框效果直接加到弹框上会切掉弹框一部分
-    [_borderView removeFromSuperview];
-    _borderView = [[UIView alloc] init];
-    CGRect borderFrame = view.bounds;
-    _borderView.backgroundColor = view.backgroundColor;
-    
     if (arrowPoint.x == 0) {
         position = FCBorderPositionLeft;
         offset = arrowPoint.y;
-        
-        borderFrame.origin.x = -_arrowSize.height;
-        borderFrame.size.width += _arrowSize.height;
-        
+
     }else if (arrowPoint.x == frame.size.width){
         position = FCBorderPositionRight;
         offset = arrowPoint.y;
-        
-        borderFrame.size.width += _arrowSize.height;
-        
+
     }else if (arrowPoint.y == 0){
         position = FCBorderPositionTop;
         offset = arrowPoint.x;
-        
-        borderFrame.origin.y = -_arrowSize.height;
-        borderFrame.size.height += _arrowSize.height;
-        
+
     }else if (arrowPoint.y == frame.size.height){
         position = FCBorderPositionBottom;
         offset = arrowPoint.x;
-        
-        borderFrame.size.height += _arrowSize.height;
+
     }
     
-    _borderView.frame = borderFrame;
-    [_borderView addArrowBorderAt:position offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:self.popView.layer.cornerRadius];
-    [view insertSubview:_borderView atIndex:0]; //加到最底层
+    [view addArrowBorderAt:position offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:view.layer.cornerRadius];
 }
 
 //修改锚点是为了scale动画可以从某点逐渐放大，而不是默认的从中心放大
@@ -417,7 +428,8 @@
 }
 
 -(void)locatePopView{
-    CGPoint triggerCenter = [self.triggerView.superview convertPoint:self.triggerView.center toView:[UIApplication sharedApplication].keyWindow];;
+    CGRect triggerFrame = self.triggerFrame;
+    CGPoint triggerCenter = CGPointMake(triggerFrame.origin.x+triggerFrame.size.width/2.0, triggerFrame.origin.y+triggerFrame.size.height/2.0);
     
     FCPopDisplayPosition effPosition;
     _popViewFrame = [self calculateDispFrameWithPosition:self.position effectivePosition:&effPosition];
@@ -485,8 +497,8 @@
 
 -(void)hideCompleted{
     if (self.showArrow) {
-        [_borderView removeFromSuperview];
-        _borderView = nil;
+//        [_borderView removeFromSuperview];
+//        _borderView = nil;
     }
 }
 
@@ -597,29 +609,25 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 
 @implementation FCPopDisplayer
 
-+(instancetype)displayerWithType:(FCPopDisplayType)type position:(FCPopDisplayPosition)position{
-    
-    if (type == FCPopDisplayTypeScreenEdge) {
-        FCPopDisplayer_screenEdge *displayer = [[FCPopDisplayer_screenEdge alloc] init];
-        displayer.position = position;
-        return displayer;
-    }else if (type == FCPopDisplayTypePoint){
-        FCPopDisplayer_point *displayer = [[FCPopDisplayer_point alloc] init];
-        displayer.position = position;
-        return displayer;
-    }else if (type == FCPopDisplayTypeCenter){
-        FCPopDisplayer_center *displayer = [[FCPopDisplayer_center alloc] init];
-        displayer.position = position;
-        return displayer;
-    }
-    
-    return nil;
-}
 
 -(instancetype)init{
     if (self = [super init]) {
         _duration = 0.25f;
+        _position = FCPopDisplayPositionBottom;
     }
+    return self;
+}
+
+-(instancetype)initWithPopView:(UIView *)popView{
+    return [self initWithPopView:popView position:(FCPopDisplayPositionBottom)];
+}
+
+-(instancetype)initWithPopView:(UIView *)popView position:(FCPopDisplayPosition)position{
+    if (self = [self init]) {
+        self.popView = popView;
+        _position = position;
+    }
+    
     return self;
 }
 

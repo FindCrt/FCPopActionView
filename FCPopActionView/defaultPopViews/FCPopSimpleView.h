@@ -21,6 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) NSString *subtitle;
 @property (nonatomic) FCPopTitleView *titleView;
 
+@property (nonatomic) CGFloat rowHeight;
+
 @property (nonatomic) void(^clickBlock)(FCPopSimpleView *actionView, FCPopSimpleItem *item);
 
 @end

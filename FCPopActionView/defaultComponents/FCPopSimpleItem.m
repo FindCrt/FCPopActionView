@@ -10,18 +10,25 @@
 
 @implementation FCPopSimpleItem
 
-+(NSArray<FCPopSimpleItem *> *)activeItemWithIcons:(NSArray<UIImage *> *)icons titles:(NSArray<NSString *> *)titles{
++(NSArray<FCPopSimpleItem *> *)activeItemWithIcons:(NSArray *)icons titles:(NSArray<NSString *> *)titles{
     NSMutableArray *items = [[NSMutableArray alloc] init];
     
-    for (int i = 0; i<icons.count; i++) {
+    NSInteger count = MAX(icons.count, titles.count);
+    
+    for (int i = 0; i<count; i++) {
         FCPopSimpleItem *item = [[FCPopSimpleItem alloc] init];
-        if ([icons[i] isKindOfClass:[NSString class]]) {
-            item.icon = [UIImage imageNamed:icons[i]];
-        }else{
-            item.icon = icons[i];
+        
+        if (i < icons.count) {
+            if ([icons[i] isKindOfClass:[NSString class]]) {
+                item.icon = [UIImage imageNamed:icons[i]];
+            }else{
+                item.icon = icons[i];
+            }
         }
         
-        item.title = titles[i];
+        if (i < titles.count) {
+            item.title = titles[i];
+        }
         
         [items addObject:item];
     }

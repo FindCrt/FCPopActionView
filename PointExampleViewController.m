@@ -6,21 +6,21 @@
 //  Copyright © 2018 shiwei. All rights reserved.
 //
 
-#import "ExampleViewController.h"
+#import "PointExampleViewController.h"
 #import "FCPopSimpleView.h"
 #import "FCPopDisplayer.h"
 
 #define kScreenHeight ([UIScreen mainScreen].bounds.size.height)
 #define kScreenWidth ([UIScreen mainScreen].bounds.size.width)
 
-@interface ExampleViewController (){
+@interface PointExampleViewController (){
     FCPopSimpleView *_popView1;
     FCPopDisplayer *_displayer;
 }
 
 @end
 
-@implementation ExampleViewController
+@implementation PointExampleViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];

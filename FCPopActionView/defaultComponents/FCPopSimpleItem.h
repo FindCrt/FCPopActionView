@@ -10,8 +10,6 @@
 
 #import <UIKit/UIKit.h>
 
-NS_ASSUME_NONNULL_BEGIN
-
 @interface FCPopSimpleItem : NSObject
 
 
@@ -37,5 +35,3 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic) UIColor *selectedColor;
 
 @end
-
-NS_ASSUME_NONNULL_END

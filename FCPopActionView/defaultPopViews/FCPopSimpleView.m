@@ -31,6 +31,7 @@
         controller.checkColor = item.selectedColor;
         controller.normalIcon = item.icon;
         controller.normalColor = item.normalColor;
+        if (_rowHeight>0) controller.height = _rowHeight;
         
         return controller;
         
@@ -38,6 +39,7 @@
         FCPopIconTextController *controller = [[FCPopIconTextController alloc] initWithItem:item];
         controller.iconView.image = item.icon;
         controller.titleLabel.text = item.title;
+        if (_rowHeight>0) controller.height = _rowHeight;
         
         return controller;
     }

@@ -15,7 +15,8 @@
 #import "FCPopTitleView.h"
 #import "UIView+Border.h"
 #import "FCPopSimpleView.h"
-#import "ExampleViewController.h"
+#import "PointExampleViewController.h"
+#import "CenterExampleViewController.h"
 
 #define kScreenHeight ([UIScreen mainScreen].bounds.size.height)
 #define kScreenWidth ([UIScreen mainScreen].bounds.size.width)
@@ -83,9 +84,27 @@
     NSLog(@"hided");
 }
 
-- (IBAction)otherExamples:(id)sender {
-    ExampleViewController *examVC = [[ExampleViewController alloc] init];
-    [self.navigationController pushViewController:examVC animated:YES];
+- (IBAction)otherExamples:(UIBarButtonItem *)sender {
+    FCPopSimpleView *menu = [[FCPopSimpleView alloc] initWithFrame:CGRectMake(0, 0, 150, 10)];
+    menu.items = [FCPopSimpleItem activeItemWithIcons:nil titles:@[@"点弹框各种位置",@"中间弹框"]];
+    menu.rowHeight = 60;
+    menu.topSpace = 10; //留给箭头的空间
+    menu.cornerRadius = 4;
+    menu.clickBlock = ^(FCPopSimpleView * _Nonnull actionView, FCPopSimpleItem * _Nonnull item) {
+        
+        if ([item.title hasPrefix:@"点"]) {
+            PointExampleViewController *examp = [[PointExampleViewController alloc] init];
+            [self.navigationController pushViewController:examp animated:YES];
+        }else if ([item.title hasPrefix:@"中"]){
+            CenterExampleViewController *examp = [[CenterExampleViewController alloc] init];
+            [self.navigationController pushViewController:examp animated:YES];
+        }
+        
+        [actionView hide];
+    };
+    
+    //导航栏按钮拿不到view,传入估计的frame
+    [FCPopDisplayer_point showPopView:menu triggerFrame:CGRectMake(kScreenWidth-60, 20, 60, 44)];
 }
 
 #pragma mark - 微信弹框样式
@@ -115,14 +134,12 @@
 }
 
 -(void)showWeChatPopView:(UIButton *)sender{
-    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypePoint) position:(FCPopDisplayPositionBottom)];
-    _displayer.delegate = self;
+    FCPopDisplayer_point *dispPoint = [[FCPopDisplayer_point alloc] init];
+    dispPoint.delegate = self;
     
-    _displayer.duration = 0.15;
-    _displayer.popView = _weChatPopView;
-    _displayer.bgView.backgroundColor = [UIColor clearColor];
-    
-    FCPopDisplayer_point *dispPoint = (FCPopDisplayer_point *)_displayer;
+    dispPoint.duration = 0.15;
+    dispPoint.popView = _weChatPopView;
+    dispPoint.bgView.backgroundColor = [UIColor clearColor];
     dispPoint.triggerView = sender;
     dispPoint.showArrow = NO;
     dispPoint.overlap = NO;
@@ -131,7 +148,9 @@
     dispPoint.margins = UIEdgeInsetsMake(0, 0, 0, 20);
     dispPoint.startScale = 0.7;
     
-    [_displayer show];
+    [dispPoint show];
+    
+    _displayer = dispPoint;
 }
 
 #pragma mark - 小米底部弹框样式
@@ -173,14 +192,14 @@
 }
 
 -(void)showMiBottomPopView:(UIButton *)button{
-    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypeScreenEdge) position:(FCPopDisplayPositionBottom)];
-    _displayer.delegate = self;
-    _displayer.popView = _miBottomPopView;
-    
-    FCPopDisplayer_screenEdge *dispScreen = (FCPopDisplayer_screenEdge*)_displayer;
+    FCPopDisplayer_screenEdge *dispScreen = [[FCPopDisplayer_screenEdge alloc] init];
+    dispScreen.delegate = self;
+    dispScreen.popView = _miBottomPopView;
     dispScreen.gapSpace = 10;
     
-    [_displayer show];
+    [dispScreen show];
+    
+    _displayer = dispScreen;
 }
 
 #pragma mark - QQ弹框样式
@@ -211,13 +230,11 @@
 }
 
 -(void)showQQPopView:(UIButton *)sender{
-    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypePoint) position:(FCPopDisplayPositionBottom)];
-    _displayer.delegate = self;
+    FCPopDisplayer_point *dispPoint = [[FCPopDisplayer_point alloc] init];
+    dispPoint.delegate = self;
     
-    _displayer.popView = _qqPopView;
-    _displayer.bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.15];
-    
-    FCPopDisplayer_point *dispPoint = (FCPopDisplayer_point *)_displayer;
+    dispPoint.popView = _qqPopView;
+    dispPoint.bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.15];
     dispPoint.triggerView = sender;
     dispPoint.showArrow = YES;
     dispPoint.arrowSize = CGSizeMake(18, 10);
@@ -226,7 +243,9 @@
     dispPoint.margins = UIEdgeInsetsMake(0, 0, 0, 5);
     dispPoint.startScale = 0.7;
     
-    [_displayer show];
+    [dispPoint show];
+    
+    _displayer = dispPoint;
 }
 
 #pragma mark - 网易云弹框样式
@@ -282,7 +301,7 @@
 }
 
 -(void)showWyBottomPopView:(UIButton *)button{
-    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypeScreenEdge) position:(FCPopDisplayPositionBottom)];
+    _displayer = [[FCPopDisplayer_screenEdge alloc] init];
     _displayer.delegate = self;
     _displayer.popView = _wyPopView;
     _displayer.bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
@@ -338,7 +357,7 @@
 }
 
 -(void)showWyBottomPopView2:(UIButton *)button{
-    _displayer = [FCPopDisplayer displayerWithType:(FCPopDisplayTypeScreenEdge) position:(FCPopDisplayPositionBottom)];
+    _displayer = [[FCPopDisplayer_screenEdge alloc] init];
     _displayer.delegate = self;
     _displayer.popView = _wyPopView2;
     _displayer.bgView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];

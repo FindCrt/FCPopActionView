@@ -62,7 +62,8 @@
         iconW = MAX(_iconView.image.size.width, _iconView.image.size.height);
     }
     _iconView.frame = CGRectMake(10, _height/2.0-iconW/2.0, iconW, iconW);
-    _titleLabel.frame = CGRectMake(CGRectGetMaxX(_iconView.frame)+10, 0, frame.size.width-CGRectGetMaxX(_iconView.frame)-20, _height);
+    CGFloat left = iconW == 0?10:iconW+10;
+    _titleLabel.frame = CGRectMake(left, 0, frame.size.width-left-10, _height);
 }
 
 -(void)setBackgroundColor:(UIColor *)backgroundColor{
