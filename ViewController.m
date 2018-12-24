@@ -87,7 +87,7 @@
 - (IBAction)otherExamples:(UIBarButtonItem *)sender {
     FCPopSimpleView *menu = [[FCPopSimpleView alloc] initWithFrame:CGRectMake(0, 0, 150, 10)];
     menu.items = [FCPopSimpleItem activeItemWithIcons:nil titles:@[@"点弹框各种位置",@"中间弹框"]];
-    menu.rowHeight = 60;
+    menu.rowHeight = 50;
     menu.cornerRadius = 4;
     menu.clickBlock = ^(FCPopSimpleView * _Nonnull actionView, FCPopSimpleItem * _Nonnull item) {
         
@@ -101,6 +101,10 @@
         
         [actionView hide];
     };
+    
+    //弹框本身的边框属性会复制到 带箭头时的边框里
+    menu.layer.borderColor = [UIColor orangeColor].CGColor;
+    menu.layer.borderWidth = 1;
     
     //导航栏按钮拿不到view,传入估计的frame
     [FCPopDisplayer_point showPopView:menu triggerFrame:CGRectMake(kScreenWidth-60, 20, 60, 44)];
@@ -240,6 +244,9 @@
     dispPoint.animationType = FCPopDisplayerAnimTypeScaleAndFade;
     dispPoint.margins = UIEdgeInsetsMake(0, 0, 0, 5);
     dispPoint.startScale = 0.7;
+    
+    dispPoint.borderWidth = 0.5;
+    dispPoint.borderColor = [UIColor colorWithWhite:0.5 alpha:1];
     
     [dispPoint show];
     

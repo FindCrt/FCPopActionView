@@ -382,7 +382,13 @@
     }
     
     if (_showArrow) {
-        [_borderView addArrowBorderAt:arrowPosition offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:self.popView.layer.cornerRadius];
+        if (!_borderColor) {
+            _borderColor = [UIColor colorWithCGColor:self.popView.layer.borderColor];
+            _borderWidth = self.popView.layer.borderWidth;
+            self.popView.layer.borderWidth = 0;
+        }
+        
+        [_borderView addArrowBorderAt:arrowPosition offset:offset width:_arrowSize.width height:_arrowSize.height cornerRadius:self.popView.layer.cornerRadius borderWidth:_borderWidth borderColor:_borderColor];
     }
     
     CGSize preSize = self.popView.frame.size;

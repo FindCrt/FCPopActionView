@@ -94,6 +94,7 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 /** 箭头的大小,默认为(15, 10); 注意会受到弹框view的scale因素影响 */
 @property (nonatomic) CGSize arrowSize;
 
+
 /** 触发弹框的view，作用等价与把triggerView的center作为triggerPoint */
 @property (nonatomic) UIView *triggerView;
 /** 触发框的frame，真正影响弹框位置的是这个 */
@@ -103,6 +104,9 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 
 /** 弹框是否重叠triggerView */
 @property (nonatomic) BOOL overlap;
+
+@property (nonatomic) CGFloat borderWidth;
+@property (nonatomic) UIColor *borderColor;
 
 
 /**

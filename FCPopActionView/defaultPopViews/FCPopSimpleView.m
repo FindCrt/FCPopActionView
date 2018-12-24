@@ -18,6 +18,15 @@
     NSAssert(delegate, @"delegate不可用");
 }
 
+-(void)setRowHeight:(CGFloat)rowHeight{
+    _rowHeight = rowHeight;
+    
+    for (FCPopItemBox *itemBox in self.itemBoxs) {
+        [(FCPopIconTextController *)itemBox.controller setHeight:_rowHeight];
+    }
+    [self layoutWithNorm:(FCPopLayoutNormContent)];
+}
+
 -(FCPopItemController *)getControllerForItem:(FCPopSimpleItem *)item{
     
     NSAssert([item isKindOfClass:[FCPopSimpleItem class]], @"item必须为FCPopSimpleItem类型");

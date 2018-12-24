@@ -17,7 +17,6 @@ static NSString *FCBorderMaskName = @"FCBorderMaskName";
 ///两个layer，一个实现边框线，一个切掉圆角外的内容的mask；
 //mask是属性，本身唯一，用名字标记即可；边框线layer通过runtime关联变量来做标记
 -(void)markFCBorder:(CALayer *)layer{
-    [self removeFCBorder];
     
     objc_setAssociatedObject(self, &FCBorderLayerKey, layer, OBJC_ASSOCIATION_RETAIN);
 }
@@ -40,6 +39,7 @@ static NSString *FCBorderMaskName = @"FCBorderMaskName";
     shape.frame = CGRectMake(borderWidth/2.0, borderWidth/2.0, self.bounds.size.width-borderWidth, self.bounds.size.height-borderWidth);
     [self.layer addSublayer:shape];
     
+    [self removeFCBorder];
     [self markFCBorder:shape];
     
     //去掉圆角外多余的
@@ -155,6 +155,12 @@ static NSString *FCBorderMaskName = @"FCBorderMaskName";
 }
 
 -(void)addArrowBorderAt:(FCBorderPosition)direction offset:(CGFloat)offset width:(CGFloat)width height:(CGFloat)height cornerRadius:(CGFloat)cornerRadius{
+    [self addArrowBorderAt:direction offset:offset width:width height:height cornerRadius:cornerRadius borderWidth:0 borderColor:nil];
+}
+
+-(void)addArrowBorderAt:(FCBorderPosition)direction offset:(CGFloat)offset width:(CGFloat)width height:(CGFloat)height cornerRadius:(CGFloat)cornerRadius borderWidth:(CGFloat)borderWidth borderColor:(UIColor *)borderColor{
+    
+    [self removeFCBorder];
     
     //只有一个mask层
     CAShapeLayer *mask = [[CAShapeLayer alloc] init];
@@ -234,6 +240,17 @@ static NSString *FCBorderMaskName = @"FCBorderMaskName";
     }
     
     mask.path = [path CGPath];
+    
+    if (borderWidth>0) {
+        CAShapeLayer *border = [[CAShapeLayer alloc] init];
+        border.path = [path CGPath];
+        border.strokeColor = borderColor.CGColor;
+        border.lineWidth = borderWidth*2;
+        border.fillColor = [UIColor clearColor].CGColor;
+        [self.layer addSublayer:border];
+        
+        [self markFCBorder:border];
+    }
 }
 
 

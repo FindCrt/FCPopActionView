@@ -43,8 +43,12 @@ typedef NS_ENUM(NSInteger, FCBorderPosition) {
  @param width 箭头的宽度
  @param height 箭头的高度
  @param cornerRadius 圆角半径，<=0不设圆角
+ @param borderWidth 边框宽度
+ @param borderColor 边框颜色
  */
-- (void)addArrowBorderAt:(FCBorderPosition)direction offset:(CGFloat)offset width:(CGFloat)width height:(CGFloat)height cornerRadius:(CGFloat)cornerRadius;
+- (void)addArrowBorderAt:(FCBorderPosition)direction offset:(CGFloat)offset width:(CGFloat)width height:(CGFloat)height cornerRadius:(CGFloat)cornerRadius borderWidth:(CGFloat)borderWidth borderColor:(UIColor *)borderColor;
 
+/** 同上，但边框宽度为0，即不显示边框，只是裁剪出箭头和圆角效果而已 */
+- (void)addArrowBorderAt:(FCBorderPosition)direction offset:(CGFloat)offset width:(CGFloat)width height:(CGFloat)height cornerRadius:(CGFloat)cornerRadius;
 
 @end
