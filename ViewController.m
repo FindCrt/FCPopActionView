@@ -246,7 +246,7 @@
     dispPoint.startScale = 0.7;
     
     dispPoint.borderWidth = 0.5;
-    dispPoint.borderColor = [UIColor colorWithWhite:0.5 alpha:1];
+    dispPoint.borderColor = []//[UIColor colorWithWhite:0.5 alpha:1];
     
     [dispPoint show];
     
