@@ -195,7 +195,7 @@
     if (self) {
         _showArrow = YES;
         _arrowSize = CGSizeMake(15, 10);
-        _startScale = 0.3f;
+        _startScale = 0.7f;
     }
     return self;
 }
@@ -542,12 +542,19 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
 
 @implementation FCPopDisplayer_center
 
+-(instancetype)init{
+    if (self = [super init]) {
+        _startScale = 0.7f;
+    }
+    return self;
+}
+
 -(CASpringAnimation *)showAnim{
     if (!_showAnim) {
         _showAnim = [[CASpringAnimation alloc] init];
         _showAnim.duration = self.duration*2;
         _showAnim.keyPath = @"transform";
-        _showAnim.fromValue = [NSValue valueWithCATransform3D:CATransform3DScale(_preTransform, 0.3, 0.3, 1)];
+        _showAnim.fromValue = [NSValue valueWithCATransform3D:CATransform3DScale(_preTransform, _startScale, _startScale, 1)];
         _showAnim.toValue = [NSValue valueWithCATransform3D:_preTransform];
         _showAnim.delegate = self;
         
@@ -564,7 +571,7 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
         _hideAnim.duration = self.duration;
         _hideAnim.keyPath = @"transform";
         _hideAnim.fromValue = [NSValue valueWithCATransform3D:_preTransform];
-        _hideAnim.toValue = [NSValue valueWithCATransform3D:CATransform3DScale(_preTransform, 0.3, 0.3, 1)];
+        _hideAnim.toValue = [NSValue valueWithCATransform3D:CATransform3DScale(_preTransform, _startScale, _startScale, 1)];
         _hideAnim.delegate = self;
         _hideAnim.removedOnCompletion = NO;
         _hideAnim.fillMode = kCAFillModeForwards;
@@ -591,7 +598,6 @@ static NSString *FCPopCenterHideAnimKey = @"FCPopCenterHideAnimKey";
     popView.center = CGPointMake(kScreenWidth/2.0, kScreenHeight/2.0);
     _preTransform = popView.layer.transform;
     
-    //正向执行
     [popView.layer addAnimation:self.showAnim forKey:FCPopCenterShowAnimKey];
     
     [UIView animateWithDuration:self.duration animations:^{

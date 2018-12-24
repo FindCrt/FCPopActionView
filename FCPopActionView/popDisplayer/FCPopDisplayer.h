@@ -116,7 +116,7 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 
 /** 动画形式 */
 @property (nonatomic) FCPopDisplayerAnimType animationType;
-/** 缩放动画的起始缩放程度，默认0.3 */
+/** 缩放动画的起始缩放程度，默认0.7 */
 @property (nonatomic) float startScale;
 
 @end
@@ -129,5 +129,7 @@ typedef NS_ENUM(NSInteger, FCPopDisplayerAnimType) {
 /** 这两个参数同CASpringAnimation, 修改这些数据调节弹出动画效果 */
 @property (nonatomic) CGFloat stiffness;
 @property (nonatomic) CGFloat damping;
+/** 缩放动画的起始缩放程度，默认0.7 */
+@property (nonatomic) float startScale;
 
 @end
